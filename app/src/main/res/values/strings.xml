@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Tô Na Área</string>
+    <string name="fotografe_preco_irregular">1 de 5 - Fotografe o preço irregular</string>
+    <string name="fotografe_numero_lote">2 de 5 - Fotografe o número do lote</string>
+    <string name="dados_pdv">3 de 5 - Insira os dados do PDV</string>
+    <string name="precos">4 de 5 - Insira os Preços</string>
+    <string name="produto_nome">5 de 5 - Insira o Nome do Produto</string>
+    <string name="fotografar">Fotografar</string>
+    <string name="sem_auditorias">Você não possui nenhuma auditoria nos últimos 30 dias, caso necessário, ultilize o botão abaixo:</string>
+    <string name="trocar_foto">Trocar Foto</string>
+    <string name="todas_auditorias">Todas as Auditorias</string>
+    <string name="auditorias_em_analise">Auditorias em Análise</string>
+    <string name="auditorias_aprovadas">Auditorias Aprovadas</string>
+    <string name="auditorias_reprovadas">Auditorias Reprovadas</string>
+    <string name="cifrao">R$ </string>
+    <string name="nome_do_ponto_de_venda">Nome do Ponto de venda</string>
+    <string name="produto">Produto</string>
+    <string name="ttv_ttc">TTV e TTC</string>
+    <string name="ttv_concorrente">TTV Concorrente</string>
+    <string name="preco">Preço</string>
+    <string name="ttv_revenda">TTV Revenda</string>
+    <string name="ttc_revenda">TTC Revenda</string>
+    <string name="tcc_concorrete">TCC Concorrete</string>
+    <string name="preco_irregular">Preço Irregular</string>
+    <string name="numero_do_lote">Número do Lote</string>
+    <string name="n">N</string>
+    <string name="exemplo">Ex: 2,95</string>
+</resources>
