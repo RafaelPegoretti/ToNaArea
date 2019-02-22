@@ -10,7 +10,7 @@
 
 
     <android.support.constraint.ConstraintLayout
-        android:id="@+id/scrollView"
+        android:id="@+id/layoutStatus"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginStart="16dp"
@@ -62,12 +62,14 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
-            <ViewStub
-                android:id="@+id/stubStatus"
+            <include
+                layout="@layout/main_status_layout"
+                android:id="@+id/includeStatus"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="16dp"
+                android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

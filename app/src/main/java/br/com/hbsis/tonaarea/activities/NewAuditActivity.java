@@ -13,6 +13,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -67,6 +68,8 @@ import br.com.hbsis.tonaarea.util.SecurityPreferences;
 
 public class NewAuditActivity extends AppCompatActivity implements View.OnClickListener, LocationListener, CallbackReponse {
 
+    private static int REQUEST_LOCATION_CODE = 1;
+
     private ViewHolder mViewHolder = new ViewHolder();
     private ViewHolderPhoto mViewHolderPhoto = new ViewHolderPhoto();
     private ViewHolderForm mViewHolderForm = new ViewHolderForm();
@@ -80,7 +83,6 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
     private Boolean[] first = new Boolean[4];
     private Boolean[] photos = new Boolean[]{false, false};
     private FusedLocationProviderClient mFusedLocationClient;
-    private LocationCallback mLocationCallback;
     private List<Client> clients;
     private List<Product> products;
     private String clientId;
@@ -89,6 +91,18 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
     private ClientRepository mClientRepository;
     private SQLiteDatabase connection;
     private int characters = 0;
+
+    private LocationCallback mLocationCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            if (locationResult == null) {
+                return;
+            }
+            for (Location location : locationResult.getLocations()) {
+                setCordinates(location);
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -253,11 +267,11 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
 
         mViewHolder.loadingView.setVisibility(View.VISIBLE);
 
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
+
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mFusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                     @Override
@@ -269,50 +283,53 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
                     }
                 });
 
-        mLocationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) {
-                    return;
-                }
-                for (Location location : locationResult.getLocations()) {
-                    setCordinates(location);
-                }
-            }
-        };
     }
 
     private void setCordinates(Location location) {
         if (location != null) {
             audit.setLongitude(location.getLongitude());
             audit.setLatitude(location.getLatitude());
-        } else {
         }
     }
 
     private void getPermission() {
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                1
+                REQUEST_LOCATION_CODE
         );
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == getPackageManager().PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             coordinates();
         } else {
             Toast.makeText(this, "Você não terá as coordenadas para registrar", Toast.LENGTH_LONG).show();
         }
 
-        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(this.CONNECTIVITY_SERVICE);
+        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(CONNECTIVITY_SERVICE);
 
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        if ((netInfo == null) && (!netInfo.isConnectedOrConnecting()) && (!netInfo.isAvailable())) {
+        if ((netInfo != null) && (!netInfo.isConnectedOrConnecting()) && (!netInfo.isAvailable())) {
             Toast.makeText(this, "não conectado a internet", Toast.LENGTH_LONG).show();
         }
 
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        if(REQUEST_LOCATION_CODE == requestCode){
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                coordinates();
+            } else {
+                Toast.makeText(this, "Você não terá as coordenadas para registrar", Toast.LENGTH_LONG).show();
+            }
+        }
+
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
     private void startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
@@ -494,7 +511,6 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         }
         return "";
     }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {

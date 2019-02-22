@@ -49,8 +49,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         mViewHolder.buttonLogin.setOnClickListener(this);
         mViewHolder.textForgotPassword.setOnClickListener(this);
 
-        mViewHolder.editUser.setOnTouchListener(this);
-        mViewHolder.editPassword.setOnTouchListener(this);
+        /*mViewHolder.editUser.setOnTouchListener(this);
+        mViewHolder.editPassword.setOnTouchListener(this);*/
 
 
     }
@@ -65,10 +65,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             case R.id.textForgotPassword:
                 Toast.makeText(this, "Entre em contato com seu TI para efetuar o reset da senha", Toast.LENGTH_LONG).show();
-                break;
-
-            case R.id.editUser:
-                Toast.makeText(this, "TESTE", Toast.LENGTH_LONG).show();
                 break;
         }
     }

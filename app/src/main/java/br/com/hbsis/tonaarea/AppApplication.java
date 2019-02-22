@@ -22,9 +22,11 @@ public class AppApplication extends Application {
     }
 
     public API getApi() {
-        if(api == null){
-            api = new RetrofitApiBuilder().build();
-        }
-        return api;
+        return new RetrofitApiBuilder().build(false);
     }
+
+    public API getApiUnsafe() {
+        return new RetrofitApiBuilder().build(true);
+    }
+
 }

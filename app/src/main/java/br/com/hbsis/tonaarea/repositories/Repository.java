@@ -180,7 +180,6 @@ public class Repository {
             try {
                 JSONArray jsonArray = new JSONArray(s);
 
-
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
                     quantity[0] = jsonObject.getInt("pendente");
@@ -517,7 +516,7 @@ public class Repository {
 
     public void postLogin(Login login, Context context) {
 
-        Call<ResponseBody> call = AppApplication.getInstance().getApi().login(login);
+        Call<ResponseBody> call = AppApplication.getInstance().getApiUnsafe().login(login);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
