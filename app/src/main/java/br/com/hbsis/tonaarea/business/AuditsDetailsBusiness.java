@@ -12,11 +12,21 @@ import java.util.concurrent.ExecutionException;
 
 import br.com.hbsis.tonaarea.entities.Audit;
 import br.com.hbsis.tonaarea.entities.AuditDTO;
+import br.com.hbsis.tonaarea.repositories.CallbackReponse;
 import br.com.hbsis.tonaarea.repositories.Repository;
 
-public class AuditsDetailsBusiness {
+public class AuditsDetailsBusiness{
 
-    Repository mRepository = new Repository();
+    Repository mRepository;
+    Context context;
+    CallbackReponse callbackReponse;
+
+    public AuditsDetailsBusiness(CallbackReponse callbackReponse,Context context) {
+        this.callbackReponse = callbackReponse;
+        this.context = context;
+        mRepository = new Repository(callbackReponse);
+
+    }
 
     public List<AuditDTO> filter(String status, List<AuditDTO> audits){
         List<AuditDTO> list = new ArrayList<>();
@@ -29,10 +39,8 @@ public class AuditsDetailsBusiness {
     }
 
 
-    public List<AuditDTO> getAudits(String endpoint,String usuarioId, int statusWorkFlow, boolean last60days, Context context){
-        List<AuditDTO> list = mRepository.getAudits(endpoint,usuarioId,statusWorkFlow,last60days,context);
-        Collections.sort(list);
-        return list;
+    public void getAudits(){
+        mRepository.getAudits(context);
     }
 
 

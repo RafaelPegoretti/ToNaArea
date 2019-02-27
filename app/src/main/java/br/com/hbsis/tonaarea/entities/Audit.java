@@ -39,12 +39,8 @@ public class Audit implements Serializable {
     private String description;
 
     @Expose
-    @SerializedName("longitude")
-    private Double longitude;
-
-    @Expose
-    @SerializedName("latitude")
-    private Double latitude;
+    @SerializedName("coordenadas")
+    private String coodinates ;
 
     private String nameAuditor;
     private String nameUserWorkFlow;
@@ -73,7 +69,7 @@ public class Audit implements Serializable {
 
     public Audit(){}
 
-    public Audit(String id, String status, String nameRevenda, String name, String product, String instant, String TTVConcorrente, String TTVRevenda, String TTCConcorrente, String TTCRevenda, String description, Double longitude, Double latitude, String nameAuditor, String nameUserWorkFlow, String dateWorkFlow, Imagem imagem) {
+    public Audit(String id, String status, String nameRevenda, String name, String product, String instant, String TTVConcorrente, String TTVRevenda, String TTCConcorrente, String TTCRevenda, String description, String coodinates, String nameAuditor, String nameUserWorkFlow, String dateWorkFlow, Imagem imagem) {
         this.id = id;
         this.status = status;
         this.nameRevenda = nameRevenda;
@@ -85,8 +81,7 @@ public class Audit implements Serializable {
         this.TTCConcorrente = TTCConcorrente;
         this.TTCRevenda = TTCRevenda;
         this.description = description;
-        this.longitude = longitude;
-        this.latitude = latitude;
+        this.coodinates = coodinates;
         this.nameAuditor = nameAuditor;
         this.nameUserWorkFlow = nameUserWorkFlow;
         this.dateWorkFlow = dateWorkFlow;
@@ -193,22 +188,13 @@ public class Audit implements Serializable {
     }
 
 
-    public Double getLongitude() {
-        return longitude;
+    public String getCoodinates() {
+        return coodinates;
     }
 
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
+    public void setCoodinates(String coodinates) {
+        this.coodinates = coodinates;
     }
-
-    public Double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
 
     public String getNameAuditor() {
         return nameAuditor;

@@ -48,11 +48,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public void listeners() {
         mViewHolder.buttonLogin.setOnClickListener(this);
         mViewHolder.textForgotPassword.setOnClickListener(this);
-
-        /*mViewHolder.editUser.setOnTouchListener(this);
-        mViewHolder.editPassword.setOnTouchListener(this);*/
-
-
     }
 
 

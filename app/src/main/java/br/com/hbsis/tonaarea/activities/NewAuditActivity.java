@@ -55,6 +55,7 @@ import br.com.hbsis.tonaarea.business.NewAuditBusiness;
 import br.com.hbsis.tonaarea.dao.ClientRepository;
 import br.com.hbsis.tonaarea.dao.ProductRepository;
 import br.com.hbsis.tonaarea.dao.Sync;
+import br.com.hbsis.tonaarea.dao.SyncUpdate;
 import br.com.hbsis.tonaarea.db.DataOpenHelper;
 import br.com.hbsis.tonaarea.entities.Audit;
 import br.com.hbsis.tonaarea.entities.AuditDTO;
@@ -110,7 +111,7 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.activity_new_audit);
 
         getRepositories();
-        mNewAuditBusiness = new NewAuditBusiness(this);
+        mNewAuditBusiness = new NewAuditBusiness(this, this);
         mSecurityPreferences = new SecurityPreferences(this);
         mProductRepository = new ProductRepository(connection);
         mClientRepository = new ClientRepository(connection);
@@ -188,7 +189,7 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
     @Override
     protected void onResume() {
         super.onResume();
-        startService(new Intent(this, Sync.class));
+//        startService(new Intent(this, Sync.class));
         startLocationUpdates();
     }
 
@@ -287,8 +288,7 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
 
     private void setCordinates(Location location) {
         if (location != null) {
-            audit.setLongitude(location.getLongitude());
-            audit.setLatitude(location.getLatitude());
+            audit.setCoodinates(location.getLongitude()+" / "+location.getLatitude());
         }
     }
 
@@ -300,8 +300,6 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             coordinates();
-        } else {
-            Toast.makeText(this, "Você não terá as coordenadas para registrar", Toast.LENGTH_LONG).show();
         }
 
         ConnectivityManager cm = (ConnectivityManager) this.getSystemService(CONNECTIVITY_SERVICE);
@@ -351,7 +349,7 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         audit.setAuditorUserId(mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.USER_ID));
         audit.setDescription(mViewHolderProduct.editDescription.getText().toString());
 
-        mNewAuditBusiness.postNewAudit(audit, this);
+        mNewAuditBusiness.postNewAudit(audit);
 
     }
 
@@ -477,8 +475,8 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
                 break;
             case R.id.buttonAddPDV:
                 Client client = new Client(mViewHolderPDV.editNewPDV.getText().toString(), mViewHolderPDV.editCodePDV.getText().toString(), false, mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.REV_ID));
-                mNewAuditBusiness.postNewPDV(client, this);
-                startService(new Intent(this, Sync.class));
+                mNewAuditBusiness.postNewPDV(client);
+                mClientRepository.insert(client);
                 break;
         }
     }
@@ -555,7 +553,7 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
                         mViewHolder.comfirmation.setVisibility(View.VISIBLE);
                         break;
                     case 3:
-                        clients = mNewAuditBusiness.getClients(Constants.URL.URL_CLIENTES, this);
+                        clients = mNewAuditBusiness.getClients();
                         autoCompletePDV(clients);
                         mViewHolder.newPDV.setVisibility(View.GONE);
                         break;

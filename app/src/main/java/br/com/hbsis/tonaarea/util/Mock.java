@@ -45,7 +45,7 @@ public class Mock {
     }
 
     public static Date parseStringToDate(String s){
-        SimpleDateFormat sd = new SimpleDateFormat();
+        SimpleDateFormat sd = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         try {
             return new Date(sd.parse(s).getTime());
         } catch (ParseException e) {

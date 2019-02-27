@@ -17,16 +17,14 @@ public class Constants {
 
     public static final class URL {
         public static final String BASE_URL ="https://homtonaarea.promaxcloud.com.br:6001/";
-        public static final String URL_AUDITORIAS = "https://homtonaarea.promaxcloud.com.br:6001/api/v1/auditorias";
-        public static final String URL_AUDITORIAS_QUANTIDADE = "https://homtonaarea.promaxcloud.com.br:6001/api/v1/auditorias/quantidade";
-        public static final String URL_AUDITORIAS_POST = "api/v1/auditorias";
+        public static final String URL_AUDITORIAS = "api/v1/auditorias";
+        public static final String URL_AUDITORIAS_QUANTIDADE = "/api/v1/auditorias/quantidade";
         public static final String URL_USER = "https://homtonaarea.promaxcloud.com.br:6001/api/v1/usuarios";
         public static final String URL_LOGIN = "api/v1/usuarios/login";
-        public static final String URL_CLIENTES_POST = "/api/v1/clientes";
-        public static final String URL_CLIENTES = "https://homtonaarea.promaxcloud.com.br:6001/api/v1/clientes";
-        public static final String URL_PRODUTOS = "https://homtonaarea.promaxcloud.com.br:6001/api/v1/produtos/lista-produtos";
-        public static final String URL_CLIENTES_ULTIMA_ATUALIZACAO = "https://homtonaarea.promaxcloud.com.br:6001/api/v1/clientes/ultima-atualizacao";
-        public static final String URL_PRODUTOS_ULTIMA_ATUALIZACAO = "https://homtonaarea.promaxcloud.com.br:6001/api/v1/produtos/ultima-atualizacao";
+        public static final String URL_CLIENTES = "/api/v1/clientes";
+        public static final String URL_PRODUTOS = "api/v1/produtos/lista-produtos";
+        public static final String URL_CLIENTES_ULTIMA_ATUALIZACAO = "api/v1/clientes/ultima-atualizacao";
+        public static final String URL_PRODUTOS_ULTIMA_ATUALIZACAO = "api/v1/produtos/ultima-atualizacao";
 
     }
 
