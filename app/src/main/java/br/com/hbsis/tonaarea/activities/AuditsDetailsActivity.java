@@ -8,26 +8,19 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-
 import br.com.hbsis.tonaarea.R;
 import br.com.hbsis.tonaarea.adapters.AuditsDetailsAdapter;
 import br.com.hbsis.tonaarea.business.AuditsDetailsBusiness;
-import br.com.hbsis.tonaarea.entities.Audit;
 import br.com.hbsis.tonaarea.entities.AuditDTO;
-import br.com.hbsis.tonaarea.repositories.API;
 import br.com.hbsis.tonaarea.repositories.CallbackReponse;
 import br.com.hbsis.tonaarea.util.ActionListDetails;
 import br.com.hbsis.tonaarea.util.Constants;
-import br.com.hbsis.tonaarea.util.Mock;
 import br.com.hbsis.tonaarea.util.SecurityPreferences;
+import br.com.hbsis.tonaarea.util.Util;
 
 public class AuditsDetailsActivity extends AppCompatActivity implements ActionListDetails, View.OnClickListener, CallbackReponse {
 
@@ -54,6 +47,7 @@ public class AuditsDetailsActivity extends AppCompatActivity implements ActionLi
         this.mViewHolder.textOnApproval = findViewById(R.id.textOnApproval);
         this.mViewHolder.textApproved = findViewById(R.id.textApproved);
         this.mViewHolder.textDisapproved = findViewById(R.id.textDisapproved);
+        this.mViewHolder.textLogout = findViewById(R.id.textLogout);
 
         listeners();
     }
@@ -64,6 +58,7 @@ public class AuditsDetailsActivity extends AppCompatActivity implements ActionLi
         this.mViewHolder.imageOnApproval.setOnClickListener(this);
         this.mViewHolder.imageApproved.setOnClickListener(this);
         this.mViewHolder.imageDisapproved.setOnClickListener(this);
+        mViewHolder.textLogout.setOnClickListener(this);
     }
 
 
@@ -107,6 +102,10 @@ public class AuditsDetailsActivity extends AppCompatActivity implements ActionLi
                 disableImages();
                 mViewHolder.imageDisapproved.setImageResource(R.drawable.ic_small_disapproved_blue);
                 mViewHolder.textDisapproved.setTextColor(textColor);
+                break;
+            case R.id.textLogout:
+                Util.logout(this);
+                startActivity(new Intent(this, LoginActivity.class));
                 break;
         }
     }
@@ -161,5 +160,6 @@ public class AuditsDetailsActivity extends AppCompatActivity implements ActionLi
         private TextView textOnApproval;
         private TextView textApproved;
         private TextView textDisapproved;
+        private TextView textLogout;
     }
 }

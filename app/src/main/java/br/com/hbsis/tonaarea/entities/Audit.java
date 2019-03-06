@@ -39,9 +39,14 @@ public class Audit implements Serializable {
     private String description;
 
     @Expose
-    @SerializedName("coordenadas")
-    private String coodinates ;
+    @SerializedName("longitude")
+    private double longitude;
 
+    @Expose
+    @SerializedName("latitude")
+    private double latitude;
+
+    private String coodinates ;
     private String nameAuditor;
     private String nameUserWorkFlow;
     private String dateWorkFlow;
@@ -65,6 +70,19 @@ public class Audit implements Serializable {
     @Expose
     @SerializedName("imagem")
     private Imagem imagem = new Imagem();
+
+    @Expose
+    @SerializedName("caixasIrregulares")
+    private int irregularBoxes;
+
+    @Expose
+    @SerializedName("fabricaOrigem")
+    private String factory;
+
+    @Expose
+    @SerializedName("ttvAuditadoValidado")
+    private boolean ttvAuditorValid;
+
 
 
     public Audit(){}
@@ -258,5 +276,45 @@ public class Audit implements Serializable {
 
     public void setImagem(Imagem imagem) {
         this.imagem = imagem;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public int getIrregularBoxes() {
+        return irregularBoxes;
+    }
+
+    public void setIrregularBoxes(int irregularBoxes) {
+        this.irregularBoxes = irregularBoxes;
+    }
+
+    public String getFactory() {
+        return factory;
+    }
+
+    public void setFactory(String factory) {
+        this.factory = factory;
+    }
+
+    public boolean isTtvAuditorValid() {
+        return ttvAuditorValid;
+    }
+
+    public void setTtvAuditorValid(boolean ttvAditorValid) {
+        this.ttvAuditorValid = ttvAditorValid;
     }
 }

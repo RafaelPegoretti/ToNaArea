@@ -35,6 +35,7 @@ public class Constants {
         public static final String PRODUCT_DATE = "productDate";
         public static final String CLIENT_DATE = "clientDate";
         public static final String KEY_PREFS_FIRST_LAUNCH = "first_launch";
+        public static final String DATE_ACCESS = "date_access";
     }
 
     public static final class DATABASE{

@@ -2,7 +2,7 @@ package br.com.hbsis.tonaarea.entities;
 
 import java.util.Date;
 
-import br.com.hbsis.tonaarea.util.Mock;
+import br.com.hbsis.tonaarea.util.Util;
 
 public class AuditDTO implements Comparable<AuditDTO> {
 
@@ -72,8 +72,8 @@ public class AuditDTO implements Comparable<AuditDTO> {
 
     @Override
     public int compareTo(AuditDTO o) {
-        Date date1 = Mock.parseStringToDate(o.getInstant());
-        Date date2 = Mock.parseStringToDate(this.instant);
+        Date date1 = Util.parseStringToDate(o.getInstant());
+        Date date2 = Util.parseStringToDate(this.instant);
         if (date1.after(date2)){
             return -1;
         }else if (date1.before(date2)){

@@ -18,6 +18,19 @@
         app:title="Detalhes da Auditoria"
         app:titleTextColor="@color/white" />
 
+    <TextView
+        android:id="@+id/textLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:text="Logout"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@+id/toolbar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/toolbar" />
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/listAuditsDetails"
         android:layout_width="0dp"
@@ -90,7 +103,7 @@
                 android:id="@+id/textOnApproval"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Em análise"
+                android:text="Em aprovação"
                 android:layout_weight="1"
                 android:layout_gravity="center"
                 android:textColor="@color/textColor"
@@ -118,7 +131,7 @@
                 android:id="@+id/textApproved"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Aprovados"
+                android:text="Aprovadas"
                 android:layout_gravity="center"
                 android:layout_weight="1"
                 android:textColor="@color/textColor"
@@ -145,7 +158,7 @@
                 android:id="@+id/textDisapproved"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Rejeitados"
+                android:text="Reprovadas"
                 android:textColor="@color/textColor"
                 android:layout_gravity="center"
                 android:layout_weight="1"

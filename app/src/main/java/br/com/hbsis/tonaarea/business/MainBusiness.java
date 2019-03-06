@@ -2,32 +2,18 @@ package br.com.hbsis.tonaarea.business;
 
 import android.content.Context;
 import android.widget.Toast;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.lang.reflect.Array;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import br.com.hbsis.tonaarea.entities.Audit;
-import br.com.hbsis.tonaarea.entities.Client;
-import br.com.hbsis.tonaarea.entities.Product;
 import br.com.hbsis.tonaarea.repositories.CallbackReponse;
 import br.com.hbsis.tonaarea.repositories.Repository;
-import br.com.hbsis.tonaarea.repositories.api.QuantityApi;
-import br.com.hbsis.tonaarea.util.Constants;
-import br.com.hbsis.tonaarea.util.Mock;
-import br.com.hbsis.tonaarea.util.SecurityPreferences;
 
 public class MainBusiness implements CallbackReponse{
-    Repository mRepository;
-    Repository mRepository2;
-    CallbackReponse callbackReponse;
-    Context context;
-    int position = 0;
-    String[] dates = new String[2];
+    private Repository mRepository;
+    private Repository mRepository2;
+    private CallbackReponse callbackReponse;
+    private Context context;
+    private int position = 0;
+    private String[] dates = new String[2];
 
     public MainBusiness(CallbackReponse callbackReponse, Context context) {
         this.callbackReponse = callbackReponse;

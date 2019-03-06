@@ -4,15 +4,20 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.annotation.RequiresApi;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toolbar;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import br.com.hbsis.tonaarea.R;
 import br.com.hbsis.tonaarea.business.MainBusiness;
 import br.com.hbsis.tonaarea.dao.ClientRepository;
@@ -21,10 +26,12 @@ import br.com.hbsis.tonaarea.dao.Sync;
 import br.com.hbsis.tonaarea.dao.SyncUpdate;
 import br.com.hbsis.tonaarea.db.DataOpenHelper;
 import br.com.hbsis.tonaarea.entities.Client;
+import br.com.hbsis.tonaarea.entities.Login;
 import br.com.hbsis.tonaarea.entities.Product;
 import br.com.hbsis.tonaarea.repositories.CallbackReponse;
 import br.com.hbsis.tonaarea.util.Constants;
 import br.com.hbsis.tonaarea.util.SecurityPreferences;
+import br.com.hbsis.tonaarea.util.Util;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, CallbackReponse {
 
@@ -51,18 +58,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         this.mViewHolder.includeStatus = findViewById(R.id.includeStatus);
         this.mViewHolder.layoutStatus = findViewById(R.id.layoutStatus);
         this.mViewHolder.textStatus = findViewById(R.id.textStatus);
+        this.mViewHolder.textLogout = findViewById(R.id.textLogout);
         mViewHolder.buttonNewAudit.setOnClickListener(this);
-
-        mMainBusiness.getQuantity();
-        startService(new Intent(this, Sync.class));
-        startService(new Intent(this, SyncUpdate.class));
+        mViewHolder.textLogout.setOnClickListener(this);
+        firstLauch();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        firstLauch();
-
+        mMainBusiness.getQuantity();
     }
 
     @Override
@@ -73,6 +78,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.buttonNewAudit:
                 startActivity(new Intent(this, NewAuditActivity.class));
+                break;
+            case R.id.textLogout:
+                Util.logout(this);
+                startActivity(new Intent(this, LoginActivity.class));
                 break;
         }
     }
@@ -85,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             this.mViewHolder.textNumberApproved = findViewById(R.id.textNumberApproved);
             this.mViewHolder.textNumberDisapproved = findViewById(R.id.textNumberDisapproved);
 
+            this.mViewHolder.buttonDetails.setOnClickListener(this);
             mViewHolder.textStatus.setTextSize(16);
             setQuantities();
         } else {
@@ -92,21 +102,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mViewHolder.layoutStatus.setBackgroundResource(R.color.colorBackground);
             mViewHolder.textStatus.setText(getString(R.string.sem_auditorias));
         }
-
-
-        this.mViewHolder.buttonDetails.setOnClickListener(this);
     }
 
     public void firstLauch() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         if (sharedPreferences.getBoolean(Constants.SECURITY_PREFERENCES_CONSTANTS.KEY_PREFS_FIRST_LAUNCH, true)) {
-            mMainBusiness.getClients("0","0");
-            mMainBusiness.getProducts("0","0");
+            mMainBusiness.getClients("0", "0");
+            mMainBusiness.getProducts("0", "0");
 
             SharedPreferences.Editor prefEditor = sharedPreferences.edit();
             prefEditor.putBoolean(Constants.SECURITY_PREFERENCES_CONSTANTS.KEY_PREFS_FIRST_LAUNCH, false);
             prefEditor.commit();
+        } else {
+            startService(new Intent(this, Sync.class));
+            //startService(new Intent(this, SyncUpdate.class));
         }
     }
 
@@ -184,5 +194,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         private TextView textNumberDisapproved;
         private View includeStatus;
         private ConstraintLayout layoutStatus;
+        private TextView textLogout;
     }
 }

@@ -6,17 +6,13 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
-
 import br.com.hbsis.tonaarea.R;
-import br.com.hbsis.tonaarea.entities.Audit;
 import br.com.hbsis.tonaarea.entities.AuditDTO;
 import br.com.hbsis.tonaarea.util.ActionListDetails;
 import br.com.hbsis.tonaarea.util.Constants;
-import br.com.hbsis.tonaarea.util.Mock;
+import br.com.hbsis.tonaarea.util.Util;
 import br.com.hbsis.tonaarea.util.ViewHolderDetails;
 
 public class AuditsDetailsAdapter extends RecyclerView.Adapter {
@@ -51,7 +47,7 @@ public class AuditsDetailsAdapter extends RecyclerView.Adapter {
         holder.textProductDetails.setText(audit.getProduct());
 
         Calendar calendar = Calendar.getInstance();
-        calendar.setTime(Mock.parseStringToDate(audit.getInstant()));
+        calendar.setTime(Util.parseStringToDate(audit.getInstant()));
         int month = calendar.get(Calendar.MONTH)+1;
         String s = calendar.get(Calendar.DAY_OF_MONTH)+"/"+month;
         holder.textDate.setText(s);

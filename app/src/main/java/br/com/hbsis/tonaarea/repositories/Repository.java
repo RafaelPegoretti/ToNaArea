@@ -28,6 +28,7 @@ import br.com.hbsis.tonaarea.entities.Product;
 import br.com.hbsis.tonaarea.repositories.api.QuantityApi;
 import br.com.hbsis.tonaarea.util.Constants;
 import br.com.hbsis.tonaarea.util.SecurityPreferences;
+import br.com.hbsis.tonaarea.util.Util;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -170,7 +171,7 @@ public class Repository {
 
     public void getClients(Context context, String startDate, String endDate){
         mSecurityPreferences = new SecurityPreferences(context);
-        Call<ResponseBody> call = AppApplication.getInstance().getApiUnsafe().getClients(mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.USER_ID),mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.REV_ID), formateDate(startDate), formateDate(endDate));
+        Call<ResponseBody> call = AppApplication.getInstance().getApiUnsafe().getClients(mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.USER_ID),mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.REV_ID), Util.formateDate(startDate), Util.formateDate(endDate), true);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -211,7 +212,7 @@ public class Repository {
     }
 
     public void getProducts(String startDate, String endDate){
-        Call<ResponseBody> call = AppApplication.getInstance().getApiUnsafe().getProducts(formateDate(startDate), formateDate(endDate));
+        Call<ResponseBody> call = AppApplication.getInstance().getApiUnsafe().getProducts(Util.formateDate(startDate), Util.formateDate(endDate));
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -538,24 +539,6 @@ public class Repository {
             });
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    private String formateDate(String date){
-        String[] date2 = date.split(" ");
-        if (date2.length > 1 ){
-            String[] date3 = date2[0].split("/");
-            StringBuilder sb = new StringBuilder();
-            sb.append(date3[2]);
-            sb.append("-");
-            sb.append(date3[1]);
-            sb.append("-");
-            sb.append(date3[0]);
-            sb.append(" ");
-            sb.append(date2[1]);
-            return sb.toString();
-        }else{
-            return date;
         }
     }
 

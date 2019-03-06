@@ -1,7 +1,6 @@
 package br.com.hbsis.tonaarea.business;
 
 import android.content.Context;
-import android.util.Log;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -12,9 +11,9 @@ import java.util.List;
 import br.com.hbsis.tonaarea.entities.Audit;
 import br.com.hbsis.tonaarea.entities.Client;
 import br.com.hbsis.tonaarea.entities.Product;
+import br.com.hbsis.tonaarea.util.Validator;
 import br.com.hbsis.tonaarea.repositories.CallbackReponse;
 import br.com.hbsis.tonaarea.repositories.Repository;
-import br.com.hbsis.tonaarea.util.Constants;
 
 public class NewAuditBusiness implements CallbackReponse{
 
@@ -34,7 +33,25 @@ public class NewAuditBusiness implements CallbackReponse{
         mRepository2.getProducts( "0", "0");
     }
 
-    public boolean priceValidation(String TTVCompetitor, String TTVResale, String TTCCompetitor, String TTCResale) {
+    public Validator productValidator(String irregularBoxes,String productName, List<Product> products){
+
+        if (irregularBoxes.equals("")){
+            return new Validator(false, "insira o número de caixas");
+        }
+
+        int irregularBoxesNumber = Integer.parseInt(irregularBoxes);
+        if (irregularBoxesNumber < 100 || irregularBoxesNumber > 9999){
+            return new Validator(false, "O Valor do campo caixas irregulares deve sert de 100 até 9999");
+        }
+        return new Validator(productExist(productName, products), "Produto não existente");
+    }
+
+
+    public Validator priceValidation(String TTVCompetitor, String TTVResale, String TTCCompetitor, String TTCResale) {
+
+        if (TTCResale.equals("") || TTCResale.equals(".")){
+            TTCResale = "3";
+        }
 
         if (priceNotEmpty(TTVCompetitor, TTVResale, TTCCompetitor, TTCResale)) {
 
@@ -43,19 +60,29 @@ public class NewAuditBusiness implements CallbackReponse{
             double priceTTCCompetitor = Double.parseDouble(TTCCompetitor);
             double priceTCCResale = Double.parseDouble(TTCResale);
 
-            return priceTTVCompetitor < 9999.99 && priceTTVCompetitor > 0
-                    && priceTTVResale < 9999.99 && priceTTVResale > 0
-                    && priceTTCCompetitor < 9999.99 && priceTTCCompetitor > 0
-                    && priceTCCResale < 9999.99 && priceTCCResale > 0;
+            if (priceTTVCompetitor <= 999.99 && priceTTVCompetitor >= 10
+                    && priceTTVResale <= 999.99 && priceTTVResale >= 10
+                    && priceTTCCompetitor <= 99.99 && priceTTCCompetitor >= 2.95
+                    && priceTCCResale <= 99.99 && priceTCCResale >= 2.95){
+                return new Validator(true, null);
+            }else if (priceTTVCompetitor > 999.99 || priceTTVCompetitor < 10
+                    || priceTTVResale > 999.99 || priceTTVResale < 10){
+                return new Validator(false, "Os Campos TTV Auditado (CX) e TTV Revenda (CX) devem ter valores de 10,00 até 999,99 ");
+            }else if (priceTTCCompetitor > 99.99 || priceTTCCompetitor < 2.95
+                    || priceTCCResale > 99.99 || priceTCCResale < 2.95){
+                return new Validator(false, "Os Campos TTC Auditado (UN) e TTC Revenda (UN) devem ter valores de 2,95 até 99,99 ");
+            }else{
+                return new Validator(false, "Valores invalidos");
+            }
         }else {
-            return false;
+            return new Validator(false, "Os campos TTV Auditado (CX), TTV Revenda (CX), TTC Auditado (UN) são obrigatórios");
         }
     }
 
     private boolean priceNotEmpty(String TTVCompetitor, String TTVResale, String TTCCompetitor, String TTCResale) {
-        if (TTVCompetitor.equals("") || TTCResale.equals("") || TTCCompetitor.equals("") || TTVResale.equals("")) {
+        if (TTVCompetitor.equals("") || TTCCompetitor.equals("") || TTVResale.equals("")) {
             return false;
-        }else if (TTVCompetitor.equals(".") || TTCResale.equals(".") || TTCCompetitor.equals(".") || TTVResale.equals(".")){
+        }else if (TTVCompetitor.equals(".") || TTCCompetitor.equals(".") || TTVResale.equals(".")){
             return false;
         }else {
             return true;
@@ -87,7 +114,7 @@ public class NewAuditBusiness implements CallbackReponse{
         return false;
     }
 
-    public boolean productValidator(String productName, List<Product> products){
+    public boolean productExist(String productName, List<Product> products){
 
         for (Product p: products){
             if (p.getProductName().equals(productName)){

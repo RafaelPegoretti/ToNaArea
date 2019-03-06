@@ -13,8 +13,8 @@
 
         <ImageView
             android:id="@+id/imageView7"
-            android:layout_width="210dp"
-            android:layout_height="177dp"
+            android:layout_width="194dp"
+            android:layout_height="146dp"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
             android:layout_marginTop="64dp"
@@ -48,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
-            android:layout_marginTop="40dp"
+            android:layout_marginTop="16dp"
             android:text="@string/nome_do_ponto_de_venda"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView14" />

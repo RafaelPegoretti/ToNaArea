@@ -18,9 +18,8 @@ import br.com.hbsis.tonaarea.R;
 import br.com.hbsis.tonaarea.business.DetailsBusiness;
 import br.com.hbsis.tonaarea.entities.Audit;
 import br.com.hbsis.tonaarea.repositories.CallbackReponse;
-import br.com.hbsis.tonaarea.util.Constants;
-import br.com.hbsis.tonaarea.util.Mock;
 import br.com.hbsis.tonaarea.util.SecurityPreferences;
+import br.com.hbsis.tonaarea.util.Util;
 
 public class DetailsActivity extends AppCompatActivity implements View.OnClickListener, CallbackReponse {
 
@@ -56,6 +55,8 @@ public class DetailsActivity extends AppCompatActivity implements View.OnClickLi
         this.mViewHolder.buttonNext = findViewById(R.id.buttonNext);
         this.mViewHolder.imagePhoto = findViewById(R.id.imagePhoto);
         this.mViewHolder.imageInclude = findViewById(R.id.imageInclude);
+        this.mViewHolder.textLogout = findViewById(R.id.textLogout);
+
 
         listeners();
 
@@ -69,6 +70,8 @@ public class DetailsActivity extends AppCompatActivity implements View.OnClickLi
         mViewHolder.imageIrregularPrice.setOnClickListener(this);
         mViewHolder.imageLotNumber.setOnClickListener(this);
         mViewHolder.imagePhoto.setOnClickListener(this);
+        mViewHolder.textLogout.setOnClickListener(this);
+
     }
 
     private void setValues() {
@@ -78,8 +81,8 @@ public class DetailsActivity extends AppCompatActivity implements View.OnClickLi
         mViewHolder.textTTVResalePrice.setText(audit.getTTVRevenda());
         mViewHolder.textTTCCompetitorPrice.setText(audit.getTTCConcorrente());
         mViewHolder.textTTCResalePrice.setText(audit.getTTCRevenda());
-        mViewHolder.imageLotNumber.setImageBitmap(Mock.converteBase64Photo(audit.getImagem().getImageLotNumber()));
-        mViewHolder.imageIrregularPrice.setImageBitmap(Mock.converteBase64Photo(audit.getImagem().getImageIrregularPrice()));
+        mViewHolder.imageLotNumber.setImageBitmap(Util.converteBase64Photo(audit.getImagem().getImageLotNumber()));
+        mViewHolder.imageIrregularPrice.setImageBitmap(Util.converteBase64Photo(audit.getImagem().getImageIrregularPrice()));
     }
 
     private void blockButtonNext() {
@@ -124,14 +127,18 @@ public class DetailsActivity extends AppCompatActivity implements View.OnClickLi
                 break;
             case R.id.imageIrregularPrice:
                 mViewHolder.imageInclude.setVisibility(View.VISIBLE);
-                mViewHolder.imagePhoto.setImageBitmap(Mock.converteBase64Photo(audit.getImagem().getImageIrregularPrice()));
+                mViewHolder.imagePhoto.setImageBitmap(Util.converteBase64Photo(audit.getImagem().getImageIrregularPrice()));
                 break;
             case R.id.imageLotNumber:
                 mViewHolder.imageInclude.setVisibility(View.VISIBLE);
-                mViewHolder.imagePhoto.setImageBitmap(Mock.converteBase64Photo(audit.getImagem().getImageLotNumber()));
+                mViewHolder.imagePhoto.setImageBitmap(Util.converteBase64Photo(audit.getImagem().getImageLotNumber()));
                 break;
             case R.id.imagePhoto:
                 mViewHolder.imageInclude.setVisibility(View.GONE);
+                break;
+            case R.id.textLogout:
+                Util.logout(this);
+                startActivity(new Intent(this, LoginActivity.class));
                 break;
         }
     }
@@ -226,6 +233,7 @@ public class DetailsActivity extends AppCompatActivity implements View.OnClickLi
         private Button buttonNext;
         private ImageView imagePhoto;
         private View imageInclude;
+        private TextView textLogout;
     }
 
 }

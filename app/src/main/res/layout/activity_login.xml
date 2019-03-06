@@ -76,7 +76,6 @@
             android:drawableLeft="@drawable/ic_user"
             android:drawablePadding="10dp"
             android:hint="CPF"
-            android:maxLength="11"
             android:inputType="number"
             android:padding="10dp"
             app:layout_constraintEnd_toEndOf="parent"

@@ -6,22 +6,14 @@ import android.content.Intent;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-
 import br.com.hbsis.tonaarea.db.DataOpenHelper;
 import br.com.hbsis.tonaarea.entities.Client;
 import br.com.hbsis.tonaarea.entities.Product;
 import br.com.hbsis.tonaarea.repositories.CallbackReponse;
 import br.com.hbsis.tonaarea.repositories.Repository;
 import br.com.hbsis.tonaarea.util.Constants;
-import br.com.hbsis.tonaarea.util.Mock;
 import br.com.hbsis.tonaarea.util.SecurityPreferences;
 
 public class Sync extends IntentService implements CallbackReponse {
@@ -31,22 +23,24 @@ public class Sync extends IntentService implements CallbackReponse {
     private ProductRepository mProductRepository;
     private SQLiteDatabase connection;
     private SecurityPreferences mSecurityPreferences;
-    String[] dates = new String[2];
-    int position = 0;
-    Context context;
+    private String[] dates = new String[2];
+    private int position = 0;
 
     public Sync(String name) {
         super(name);
-        this.context = context;
     }
 
-        @Override
+    public Sync() {
+        super("Syncronizar");
+    }
+
+    @Override
     public void onHandleIntent(Intent intent) {
-        getRepositories(context);
+        getRepositories(this);
         position = 0;
-        mSecurityPreferences = new SecurityPreferences(context);
+        mSecurityPreferences = new SecurityPreferences(this);
         mRepository = new Repository(this);
-        mRepository.getLastUpdateClient(context);
+        mRepository.getLastUpdateClient(this);
         mRepository.getLastUpdateProduct();
     }
 
@@ -77,12 +71,13 @@ public class Sync extends IntentService implements CallbackReponse {
             client.setDate(jsonObject.getString("dataInclusaoAlteracao"));
             client.setRevendaName(jsonObject.getString("nomeRevenda"));
             client.setActive(jsonObject.getBoolean("ativo"));
+            client.setDate(jsonObject.getString("dataInclusaoAlteracao"));
             mClientRepository.insert(client);
-
+            //mSecurityPreferences.storeString(Constants.SECURITY_PREFERENCES_CONSTANTS.CLIENT_DATE, dates[0]);
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
 
         try {
@@ -91,16 +86,19 @@ public class Sync extends IntentService implements CallbackReponse {
             product.setProductName(jsonObject.getString("nomeProduto"));
             product.setActive(jsonObject.getBoolean("ativo"));
             product.setDate(jsonObject.getString("dataInclusaoAlteracao"));
+            //mSecurityPreferences.storeString(Constants.SECURITY_PREFERENCES_CONSTANTS.PRODUCT_DATE, dates[1]);
             mProductRepository.insert(product);
         } catch (JSONException e) {
+            e.printStackTrace();
+        }catch (Exception e){
             e.printStackTrace();
         }
 
         if (position == 2) {
-            mRepository.getClients(context, mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.CLIENT_DATE), dates[0]);
+            mRepository.getClients(this, mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.CLIENT_DATE), dates[0]);
             mRepository.getProducts(mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.PRODUCT_DATE), dates[1]);
+            position++;
         }
-
     }
 
     @Override
@@ -108,4 +106,3 @@ public class Sync extends IntentService implements CallbackReponse {
         Log.e("", "");
     }
 }
-

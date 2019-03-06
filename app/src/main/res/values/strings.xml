@@ -24,5 +24,7 @@
     <string name="preco_irregular">Preço Irregular</string>
     <string name="numero_do_lote">Número do Lote</string>
     <string name="n">N</string>
-    <string name="exemplo">Ex: 2,95</string>
+    <string name="exemplo_TTV">10,95</string>
+    <string name="exemplo_TTC">2,95</string>
+
 </resources>

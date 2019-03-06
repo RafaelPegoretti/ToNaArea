@@ -34,7 +34,7 @@ public interface API {
     Call<ResponseBody> getAudit(@Path("id") String id);
 
     @GET (Constants.URL.URL_CLIENTES)
-    Call<ResponseBody> getClients(@Query("usuarioId") String UserId, @Query("revendaId") String revId, @Query("dataInicial") String startDate, @Query("dataFinal") String endDate);
+    Call<ResponseBody> getClients(@Query("usuarioId") String UserId, @Query("revendaId") String revId, @Query("dataInicial") String startDate, @Query("dataFinal") String endDate, @Query("ativo") boolean ative);
 
     @GET (Constants.URL.URL_PRODUTOS)
     Call<ResponseBody> getProducts(@Query("dataInicial") String startDate, @Query("dataFinal") String endDate);
