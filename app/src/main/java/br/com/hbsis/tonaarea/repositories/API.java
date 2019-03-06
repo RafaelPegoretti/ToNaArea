@@ -3,7 +3,6 @@ package br.com.hbsis.tonaarea.repositories;
 import br.com.hbsis.tonaarea.entities.Audit;
 import br.com.hbsis.tonaarea.entities.Client;
 import br.com.hbsis.tonaarea.entities.Login;
-import br.com.hbsis.tonaarea.repositories.api.QuantityApi;
 import br.com.hbsis.tonaarea.util.Constants;
 import okhttp3.ResponseBody;
 import retrofit2.Call;

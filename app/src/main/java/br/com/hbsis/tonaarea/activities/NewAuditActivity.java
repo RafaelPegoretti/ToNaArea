@@ -7,7 +7,6 @@ import android.content.pm.PackageManager;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -20,8 +19,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewStub;
 import android.view.inputmethod.InputMethodManager;
@@ -31,7 +28,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,11 +51,8 @@ import br.com.hbsis.tonaarea.R;
 import br.com.hbsis.tonaarea.business.NewAuditBusiness;
 import br.com.hbsis.tonaarea.dao.ClientRepository;
 import br.com.hbsis.tonaarea.dao.ProductRepository;
-import br.com.hbsis.tonaarea.dao.Sync;
-import br.com.hbsis.tonaarea.dao.SyncUpdate;
 import br.com.hbsis.tonaarea.db.DataOpenHelper;
 import br.com.hbsis.tonaarea.entities.Audit;
-import br.com.hbsis.tonaarea.entities.AuditDTO;
 import br.com.hbsis.tonaarea.entities.Client;
 import br.com.hbsis.tonaarea.entities.Imagem;
 import br.com.hbsis.tonaarea.entities.Product;
@@ -129,7 +122,6 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         this.mViewHolder.comfirmation = findViewById(R.id.comfirmation);
         this.mViewHolder.buttonComfirmation = findViewById(R.id.buttonComfirmation);
         this.mViewHolder.loadingView = findViewById(R.id.loadingView);
-        this.mViewHolder.newPDV = findViewById(R.id.newPDV);
         this.mViewHolder.viewStubProduct = findViewById(R.id.viewStubProduct);
         this.mViewHolder.textLogout = findViewById(R.id.textLogout);
 
@@ -159,14 +151,7 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         this.mViewHolderForm.editTTCResale = findViewById(R.id.editTTCResale);
 
         this.mViewHolderPDV.editPDV = findViewById(R.id.editPDV);
-        this.mViewHolderPDV.editNewPDV = findViewById(R.id.editNewPDV);
-        this.mViewHolderPDV.editCodePDV = findViewById(R.id.editCodePDV);
-
         this.mViewHolderPDV.buttonNewPDV = findViewById(R.id.buttonNewPDV);
-        this.mViewHolderPDV.buttonAddPDV = findViewById(R.id.buttonAddPDV);
-        this.mViewHolderPDV.buttonCancel = findViewById(R.id.buttonCancel);
-        this.mViewHolderPDV.editNewPDV = findViewById(R.id.editNewPDV);
-        this.mViewHolderPDV.editCodePDV = findViewById(R.id.editCodePDV);
 
         this.mViewHolderProduct.editProduct = findViewById(R.id.editProduct);
         this.mViewHolderProduct.editDescription = findViewById(R.id.editDescription);
@@ -186,17 +171,21 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         first[1] = false;
         first[2] = false;
 
-        clients = mClientRepository.getAll();
-        products = mProductRepository.getAll();
 
-        autoCompletePDV(clients);
-        autoCompleteProduct(products);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         startLocationUpdates();
+
+        //clients.addAll(mClientRepository.getNew(clients));
+        clients = mClientRepository.getAll();
+        products = mProductRepository.getAll();
+
+        autoCompletePDV(clients);
+        autoCompleteProduct(products);
+
     }
 
     private void autoCompletePDV(List<Client> clients) {
@@ -237,8 +226,6 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         mViewHolderPhoto.buttonPhotograph.setOnClickListener(this);
         mViewHolder.buttonComfirmation.setOnClickListener(this);
         mViewHolderPDV.buttonNewPDV.setOnClickListener(this);
-        mViewHolderPDV.buttonCancel.setOnClickListener(this);
-        mViewHolderPDV.buttonAddPDV.setOnClickListener(this);
         mViewHolder.textLogout.setOnClickListener(this);
         mViewHolderProduct.editDescription.addTextChangedListener(new TextWatcher() {
             @Override
@@ -495,17 +482,7 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
                 finish();
                 break;
             case R.id.buttonNewPDV:
-                mViewHolder.newPDV.setVisibility(View.VISIBLE);
-                break;
-            case R.id.buttonCancel:
-                mViewHolder.newPDV.setVisibility(View.GONE);
-                break;
-            case R.id.buttonAddPDV:
-                Client client = new Client(mViewHolderPDV.editNewPDV.getText().toString(), mViewHolderPDV.editCodePDV.getText().toString(), true, mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.REV_ID));
-                mNewAuditBusiness.postNewPDV(client);
-                //startService(new Intent(this, Sync.class));
-                clients.addAll(mClientRepository.getByCode(Integer.parseInt(mViewHolderPDV.editCodePDV.getText().toString())));
-                autoCompletePDV(clients);
+                startActivity(new Intent(this, PDVActivity.class));
                 break;
             case R.id.textLogout:
                 Util.logout(this);
@@ -568,15 +545,6 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
     }
 
     @Override
-    public void onBackPressed() {
-        if (mViewHolder.newPDV.getVisibility() == View.VISIBLE) {
-            mViewHolder.newPDV.setVisibility(View.GONE);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
     public void onSuccess(JSONObject jsonObject) {
 
         try {
@@ -588,7 +556,6 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
                     case 3:
                         clients = mNewAuditBusiness.getClients();
                         autoCompletePDV(clients);
-                        mViewHolder.newPDV.setVisibility(View.GONE);
                         break;
                 }
 
@@ -634,7 +601,6 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         private View comfirmation;
         private Button buttonComfirmation;
         private View loadingView;
-        private View newPDV;
         private TextView textLogout;
     }
 
@@ -647,11 +613,7 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
 
     private static class ViewHolderPDV {
         private AutoCompleteTextView editPDV;
-        private EditText editNewPDV;
-        private EditText editCodePDV;
         private Button buttonNewPDV;
-        private Button buttonAddPDV;
-        private Button buttonCancel;
     }
 
     private static class ViewHolderForm {

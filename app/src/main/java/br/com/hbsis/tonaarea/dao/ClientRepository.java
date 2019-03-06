@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -46,41 +47,6 @@ public class ClientRepository {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT *");
         sql.append("  FROM " + Constants.DATABASE.TABLE_CLIENT.TABLE_NAME);
-
-        Cursor result = connection.rawQuery(sql.toString(), null);
-
-        if (result.getCount() == 0) {
-            result.close();
-            return clients;
-        }
-        result.moveToFirst();
-
-        do {
-            Client c = new Client();
-            c.setClientId(result.getString(result.getColumnIndexOrThrow(Constants.DATABASE.TABLE_CLIENT.COLUMN_ID)));
-            c.setClientName(result.getString(result.getColumnIndexOrThrow(Constants.DATABASE.TABLE_CLIENT.COLUMN_NAME)));
-            c.setClienteCode(result.getString(result.getColumnIndexOrThrow(Constants.DATABASE.TABLE_CLIENT.COLUMN_CODE)));
-            c.setRevendaName(result.getString(result.getColumnIndexOrThrow(Constants.DATABASE.TABLE_CLIENT.COLUMN_REVENDA_NAME)));
-            c.setDate(result.getString(result.getColumnIndexOrThrow(Constants.DATABASE.TABLE_CLIENT.COLUMN_DATE)));
-
-            int i = result.getInt(result.getColumnIndexOrThrow(Constants.DATABASE.TABLE_CLIENT.COLUMN_ACTIVE));
-            if (i == 0) {
-                c.setActive(false);
-            } else if (i == 1) {
-                c.setActive(true);
-            }
-            clients.add(c);
-        } while (result.moveToNext());
-
-        return clients;
-    }
-
-    public List<Client> getByCode(int code){
-        List<Client> clients = new ArrayList<>();
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT *");
-        sql.append("  FROM " + Constants.DATABASE.TABLE_CLIENT.TABLE_NAME);
-        sql.append(" WHERE "+Constants.DATABASE.TABLE_CLIENT.COLUMN_CODE+" = "+code);
 
         Cursor result = connection.rawQuery(sql.toString(), null);
 
@@ -164,4 +130,15 @@ public class ClientRepository {
     }
 
 
+    public List<Client> getNew(List<Client> clients) {
+        List<Client> clients2 = new ArrayList<>();
+        for (Client client: getAll()){
+            for (Client client2: clients){
+                if (!client.getClientId().equals(client2.getClientId())){
+                    clients2.add(client);
+                }
+            }
+        }
+        return clients2;
+    }
 }

@@ -73,7 +73,7 @@ public class Sync extends IntentService implements CallbackReponse {
             client.setActive(jsonObject.getBoolean("ativo"));
             client.setDate(jsonObject.getString("dataInclusaoAlteracao"));
             mClientRepository.insert(client);
-            //mSecurityPreferences.storeString(Constants.SECURITY_PREFERENCES_CONSTANTS.CLIENT_DATE, dates[0]);
+            mSecurityPreferences.storeString(Constants.SECURITY_PREFERENCES_CONSTANTS.CLIENT_DATE, dates[0]);
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -86,7 +86,7 @@ public class Sync extends IntentService implements CallbackReponse {
             product.setProductName(jsonObject.getString("nomeProduto"));
             product.setActive(jsonObject.getBoolean("ativo"));
             product.setDate(jsonObject.getString("dataInclusaoAlteracao"));
-            //mSecurityPreferences.storeString(Constants.SECURITY_PREFERENCES_CONSTANTS.PRODUCT_DATE, dates[1]);
+            mSecurityPreferences.storeString(Constants.SECURITY_PREFERENCES_CONSTANTS.PRODUCT_DATE, dates[1]);
             mProductRepository.insert(product);
         } catch (JSONException e) {
             e.printStackTrace();

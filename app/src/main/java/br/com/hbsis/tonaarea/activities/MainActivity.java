@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             prefEditor.commit();
         } else {
             startService(new Intent(this, Sync.class));
-            //startService(new Intent(this, SyncUpdate.class));
+            startService(new Intent(this, SyncUpdate.class));
         }
     }
 

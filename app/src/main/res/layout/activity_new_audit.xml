@@ -137,11 +137,6 @@
         layout="@layout/loading_view"
         android:visibility="gone"/>
 
-    <include
-        android:id="@+id/newPDV"
-        layout="@layout/new_pdv_layout"
-        android:visibility="gone"/>
-
     <TextView
         android:id="@+id/textLogout"
         android:layout_width="wrap_content"

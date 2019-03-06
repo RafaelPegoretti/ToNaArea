@@ -27,8 +27,8 @@ public class SyncUpdate extends IntentService implements CallbackReponse {
     String[] dates = new String[2];
     int position = 0;
 
-    public SyncUpdate(String name) {
-        super(name);
+    public SyncUpdate() {
+        super("SyncUpdate");
     }
 
     @Override
