@@ -3,9 +3,13 @@ package br.com.hbsis.tonaarea.repositories;
 import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.google.gson.JsonObject;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -13,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
 import br.com.hbsis.tonaarea.AppApplication;
 import br.com.hbsis.tonaarea.entities.APIObject;
 import br.com.hbsis.tonaarea.entities.Audit;
@@ -20,8 +25,10 @@ import br.com.hbsis.tonaarea.entities.AuditDTO;
 import br.com.hbsis.tonaarea.entities.Client;
 import br.com.hbsis.tonaarea.entities.Login;
 import br.com.hbsis.tonaarea.entities.Product;
+import br.com.hbsis.tonaarea.repositories.api.QuantityApi;
 import br.com.hbsis.tonaarea.util.Constants;
 import br.com.hbsis.tonaarea.util.SecurityPreferences;
+import br.com.hbsis.tonaarea.util.Util;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -41,359 +48,295 @@ public class Repository {
 
     JSONObject jsonObject;
 
-
-    public Audit getAudit(String endpoint, String id, Context context) {
-
-        String url = endpoint + "/" + id;
-        APIObject apiObject = new APIObject(url, Constants.OPERATION_METHOD.GET);
-
-        APIRepository apiRepository = new APIRepository(context);
-        apiRepository.execute(apiObject);
-
-
-        String s;
-        Audit audit = new Audit();
-
-        try {
-            s = apiRepository.get();
-
-            try {
-                JSONArray jsonArray = new JSONArray(s);
-
-                for (int i = 0; i < jsonArray.length(); i++) {
-
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-                    audit.setId(jsonObject.getString("id"));
-                    audit.setNameRevenda(jsonObject.getString("nomeRevenda"));
-                    audit.setName(jsonObject.getString("nomeCliente"));
-                    audit.setProduct(jsonObject.getString("nomeProduto"));
-                    audit.setTTCRevenda(jsonObject.getString("valorTtcRevenda"));
-                    audit.setTTVRevenda(jsonObject.getString("valorTtvRevenda"));
-                    audit.setTTCConcorrente(jsonObject.getString("valorTtcAuditado"));
-                    audit.setTTVConcorrente(jsonObject.getString("valorTtvAuditado"));
-                    audit.setDescription(jsonObject.getString("descricao"));
-                    audit.setLatitude(jsonObject.getDouble("latitude"));
-                    audit.setLongitude(jsonObject.getDouble("longitude"));
-                    audit.setNameAuditor(jsonObject.getString("nomeAuditor"));
-                    audit.setNameUserWorkFlow(jsonObject.getString("nomeUsuarioWorkflow"));
-                    audit.setInstant(jsonObject.getString("dataAuditoria"));
-                    audit.setStatus(jsonObject.getString("statusWorkFlow"));
-
-                    JSONObject jsonImage = jsonObject.getJSONObject("imagem");
-                    audit.getImagem().setImageId(jsonImage.getString("id"));
-                    audit.getImagem().setImageIrregularPrice(jsonImage.getString("precoIrregularBase64"));
-                    audit.getImagem().setImageLotNumber(jsonImage.getString("loteBase64"));
-
+    public void getAudit(Context context, String id){
+        Call<ResponseBody> call = AppApplication.getInstance().getApiUnsafe().getAudit(id);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
                     try {
-                        audit.setDateWorkFlow(jsonObject.getString("dataWorkflow"));
+                        JSONArray jsonArray = new JSONArray(response.body().string());
+                            JSONObject jsonObject = jsonArray.getJSONObject(0);
+                            if (callbackReponse != null) {
+                                callbackReponse.onSuccess(jsonObject);
+                        }
                     } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-
+                } else {
+                    try {
+                        jsonObject = new JSONObject(response.errorBody().string());
+                        if (callbackReponse != null) {
+                            callbackReponse.onSuccess(jsonObject);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-                Toast.makeText(context, s, Toast.LENGTH_LONG).show();
             }
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        return audit;
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                if (callbackReponse != null) {
+                    callbackReponse.onError(jsonObject);
+                }
+            }
+        });
     }
 
-    public List<AuditDTO> getAudits(String endpoint, String usuarioId, int statusWorkflow, boolean last30days, Context context) {
-
-        StringBuilder url = new StringBuilder();
-        url.append(endpoint);
-        url.append("?usuarioId=");
-        url.append(usuarioId);
-        url.append("&statusWorkflow=");
-        url.append(statusWorkflow);
-        url.append("&ultimos30dias=");
-        url.append(last30days);
-
-        List<AuditDTO> list = new ArrayList<>();
-
-        APIObject apiObject = new APIObject(url.toString(), Constants.OPERATION_METHOD.GET);
-
-        APIRepository apiRepository = new APIRepository(context);
-        apiRepository.execute(apiObject);
-
-        String s;
-        try {
-            s = apiRepository.get();
-
-            try {
-                JSONArray jsonArray = new JSONArray(s);
-
-
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    AuditDTO audit = new AuditDTO();
-
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-                    audit.setId(jsonObject.getString("id"));
-                    audit.setNameRevenda(jsonObject.getString("nomeRevenda"));
-                    audit.setName(jsonObject.getString("nomeCliente"));
-                    audit.setProduct(jsonObject.getString("nomeProduto"));
-                    audit.setNameAuditor(jsonObject.getString("nomeAuditor"));
-                    audit.setStatus(jsonObject.getString("statusWorkflow"));
-                    audit.setInstant(jsonObject.getString("dataAuditoria"));
-
-                    list.add(audit);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-                Toast.makeText(context, s, Toast.LENGTH_LONG).show();
-            }
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
-
-    public int[] getQuantity(String endpoint, Context context) {
-
+    public void getAudits(Context context) {
         mSecurityPreferences = new SecurityPreferences(context);
-        StringBuilder sb = new StringBuilder();
-        sb.append(endpoint);
-        sb.append("?usuarioId=");
-        sb.append(mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.USER_ID));
-
-        String url = sb.toString();
-
-
-        APIObject apiObject = new APIObject(url, Constants.OPERATION_METHOD.GET);
-
-        APIRepository apiRepository = new APIRepository(context);
-        apiRepository.execute(apiObject);
-        String s;
-        int[] quantity = new int[3];
-
-        try {
-            s = apiRepository.get();
-
-            try {
-                JSONArray jsonArray = new JSONArray(s);
-
-
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-                    quantity[0] = jsonObject.getInt("pendente");
-                    quantity[1] = jsonObject.getInt("aprovada");
-                    quantity[2] = jsonObject.getInt("reprovada");
-
+        Call<ResponseBody> call = AppApplication.getInstance().getApiUnsafe().getAudits(mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.USER_ID),9,true);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    try {
+                        JSONArray jsonArray = new JSONArray(response.body().string());
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            if (callbackReponse != null) {
+                                callbackReponse.onSuccess(jsonObject);
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    try {
+                        jsonObject = new JSONObject(response.errorBody().string());
+                        if (callbackReponse != null) {
+                            callbackReponse.onSuccess(jsonObject);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-                Toast.makeText(context, s, Toast.LENGTH_LONG).show();
             }
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return quantity;
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                if (callbackReponse != null) {
+                    callbackReponse.onError(jsonObject);
+                }
+            }
+        });
     }
 
-    public List<Client> getClients(String endpoint, Context context) {
-
+    public void getQuantity(Context context) {
         mSecurityPreferences = new SecurityPreferences(context);
-        StringBuilder url = new StringBuilder();
-        url.append(endpoint);
-        url.append("?usuarioId=");
-        url.append(mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.USER_ID));
-        url.append("&revendaId=");
-        url.append(mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.REV_ID));
-
-        APIObject apiObject = new APIObject(url.toString(), Constants.OPERATION_METHOD.GET);
-
-        APIRepository apiRepository = new APIRepository(context);
-        apiRepository.execute(apiObject);
-        String s;
-        List<Client> clients = new ArrayList<>();
-
-        try {
-            s = apiRepository.get();
-
-            try {
-                JSONArray jsonArray = new JSONArray(s);
-
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    Client client = new Client();
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-
-                    client.setClientId(jsonObject.getString("id"));
-                    client.setClientName(jsonObject.getString("nomeCliente"));
-                    client.setClienteCode(jsonObject.getString("codigoCliente"));
-                    client.setDate(jsonObject.getString("dataInclusaoAlteracao"));
-                    client.setRevendaName(jsonObject.getString("nomeRevenda"));
-                    client.setActive(jsonObject.getBoolean("ativo"));
-                    clients.add(client);
+        Call<ResponseBody> call = AppApplication.getInstance().getApiUnsafe().getQuantity(mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.USER_ID));
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    try {
+                        JSONArray jsonArray = new JSONArray(response.body().string());
+                        JSONObject jsonObject = jsonArray.getJSONObject(0);
+                        if (callbackReponse != null) {
+                            callbackReponse.onSuccess(jsonObject);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    try {
+                        jsonObject = new JSONObject(response.errorBody().string());
+                        if (callbackReponse != null) {
+                            callbackReponse.onSuccess(jsonObject);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-
-
-                } catch (JSONException e) {
-                e.printStackTrace();
             }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        return clients;
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                if (callbackReponse != null) {
+                    callbackReponse.onError(jsonObject);
+                }
+            }
+        });
     }
 
-    public List<Product> getProducts(String url, Context context) {
-
+    public void getClients(Context context, String startDate, String endDate){
         mSecurityPreferences = new SecurityPreferences(context);
-
-        APIObject apiObject = new APIObject(url, Constants.OPERATION_METHOD.GET);
-
-        APIRepository apiRepository = new APIRepository(context);
-        apiRepository.execute(apiObject);
-        String s;
-        List<Product> products = new ArrayList<>();
-
-        try {
-            s = apiRepository.get();
-
-            try {
-                JSONArray jsonArray = new JSONArray(s);
-
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    Product product = new Product();
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-
-                    product.setProductId(jsonObject.getString("id"));
-                    product.setProductName(jsonObject.getString("nomeProduto"));
-                    product.setActive(jsonObject.getBoolean("ativo"));
-                    product.setDate(jsonObject.getString("dataInclusaoAlteracao"));
-                    products.add(product);
+        Call<ResponseBody> call = AppApplication.getInstance().getApiUnsafe().getClients(mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.USER_ID),mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.REV_ID), Util.formateDate(startDate), Util.formateDate(endDate), true);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    try {
+                        JSONArray jsonArray = new JSONArray(response.body().string());
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            if (callbackReponse != null) {
+                                callbackReponse.onSuccess(jsonObject);
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    try {
+                        jsonObject = new JSONObject(response.errorBody().string());
+                        if (callbackReponse != null) {
+                            callbackReponse.onSuccess(jsonObject);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-
-
-            } catch (JSONException e) {
-                e.printStackTrace();
             }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        return products;
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                if (callbackReponse != null) {
+                    callbackReponse.onError(jsonObject);
+                }
+            }
+        });
     }
 
+    public void getProducts(String startDate, String endDate){
+        Call<ResponseBody> call = AppApplication.getInstance().getApiUnsafe().getProducts(Util.formateDate(startDate), Util.formateDate(endDate));
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    try {
+                        JSONArray jsonArray = new JSONArray(response.body().string());
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            if (callbackReponse != null) {
+                                callbackReponse.onSuccess(jsonObject);
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    try {
+                        jsonObject = new JSONObject(response.errorBody().string());
+                        if (callbackReponse != null) {
+                            callbackReponse.onSuccess(jsonObject);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                if (callbackReponse != null) {
+                    callbackReponse.onError(jsonObject);
+                }
+            }
+        });
+    }
 
-    public List<Client> getClientsDates(String endpoint, Context context, String startDate, String endDate) {
+    public void getLastUpdateProduct(){
+        Call<ResponseBody> call = AppApplication.getInstance().getApiUnsafe().getLastUpdateProduct();
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    try {
+                        JSONArray jsonArray = new JSONArray(response.body().string());
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            if (callbackReponse != null) {
+                                callbackReponse.onSuccess(jsonObject);
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    try {
+                        jsonObject = new JSONObject(response.errorBody().string());
+                        if (callbackReponse != null) {
+                            callbackReponse.onSuccess(jsonObject);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                if (callbackReponse != null) {
+                    callbackReponse.onError(jsonObject);
+                }
+            }
+        });
+    }
 
+    public void getLastUpdateClient(Context context){
         mSecurityPreferences = new SecurityPreferences(context);
-        StringBuilder url = new StringBuilder();
-        url.append(endpoint);
-        url.append("?usuarioId=");
-        url.append(mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.USER_ID));
-        url.append("&revendaId=");
-        url.append(mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.REV_ID));
-        url.append("&dataInicial=");
-        url.append(startDate);
-        url.append("&dataFinal=");
-        url.append(endDate);
-
-        APIObject apiObject = new APIObject(url.toString(), Constants.OPERATION_METHOD.GET);
-
-        APIRepository apiRepository = new APIRepository(context);
-        apiRepository.execute(apiObject);
-        String s;
-        List<Client> clients = new ArrayList<>();
-
-        try {
-            s = apiRepository.get();
-
-            try {
-                JSONArray jsonArray = new JSONArray(s);
-
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    Client client = new Client();
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-
-                    client.setClientId(jsonObject.getString("id"));
-                    client.setClientName(jsonObject.getString("nomeCliente"));
-                    client.setClienteCode(jsonObject.getString("codigoCliente"));
-                    client.setDate(jsonObject.getString("dataInclusaoAlteracao"));
-                    client.setRevendaName(jsonObject.getString("nomeRevenda"));
-                    client.setActive(jsonObject.getBoolean("ativo"));
-                    clients.add(client);
+        Call<ResponseBody> call = AppApplication.getInstance().getApiUnsafe().getLastUpdateClient(mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.REV_ID));
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    try {
+                        JSONArray jsonArray = new JSONArray(response.body().string());
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            if (callbackReponse != null) {
+                                callbackReponse.onSuccess(jsonObject);
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    try {
+                        jsonObject = new JSONObject(response.errorBody().string());
+                        if (callbackReponse != null) {
+                            callbackReponse.onSuccess(jsonObject);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-
-
-            } catch (JSONException e) {
-                e.printStackTrace();
             }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        return clients;
-    }
-
-    public List<Product> getProductsDates(String endpoint, Context context, String startDate, String endDate) {
-
-        mSecurityPreferences = new SecurityPreferences(context);
-
-        StringBuilder url = new StringBuilder();
-
-        url.append("?dataInicial=");
-        url.append(startDate);
-        url.append("&dataFinal=");
-        url.append(endDate);
-
-        APIObject apiObject = new APIObject(url.toString(), Constants.OPERATION_METHOD.GET);
-
-        APIRepository apiRepository = new APIRepository(context);
-        apiRepository.execute(apiObject);
-        String s;
-        List<Product> products = new ArrayList<>();
-
-        try {
-            s = apiRepository.get();
-
-            try {
-                JSONArray jsonArray = new JSONArray(s);
-
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    Product product = new Product();
-                    JSONObject jsonObject = jsonArray.getJSONObject(i);
-
-                    product.setProductId(jsonObject.getString("id"));
-                    product.setProductName(jsonObject.getString("nomeProduto"));
-                    product.setActive(jsonObject.getBoolean("ativo"));
-                    product.setDate(jsonObject.getString("dataInclusaoAlteracao"));
-                    products.add(product);
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                if (callbackReponse != null) {
+                    callbackReponse.onError(jsonObject);
                 }
-
-
-            } catch (JSONException e) {
-                e.printStackTrace();
             }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        return products;
+        });
     }
 
 
-    public Date getLastUpdateProduct(String url, Context context){
+    public Date getLastUpdateProduct(String url, Context context) {
 
         APIObject apiObject = new APIObject(url, Constants.OPERATION_METHOD.GET);
 
@@ -415,7 +358,7 @@ public class Repository {
                 }
 
 
-                } catch (JSONException e) {
+            } catch (JSONException e) {
                 e.printStackTrace();
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -475,10 +418,12 @@ public class Repository {
         return null;
     }
 
-        public void postNewAudit(Audit audit, final Context context) {
+
+
+    public void postNewAudit(Audit audit, final Context context) {
 
         try {
-            AppApplication.getInstance().getApi().sendImage(audit).enqueue(new Callback<ResponseBody>() {
+            AppApplication.getInstance().getApiUnsafe().sendImage(audit).enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                     if (response.isSuccessful()) {
@@ -502,7 +447,8 @@ public class Repository {
                             e.printStackTrace();
                         } catch (JSONException e) {
                             e.printStackTrace();
-                        }                    }
+                        }
+                    }
                 }
 
                 @Override
@@ -517,7 +463,7 @@ public class Repository {
 
     public void postLogin(Login login, Context context) {
 
-        Call<ResponseBody> call = AppApplication.getInstance().getApi().login(login);
+        Call<ResponseBody> call = AppApplication.getInstance().getApiUnsafe().login(login);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -558,7 +504,7 @@ public class Repository {
     public void postNewPDV(Client client, final Context context) {
 
         try {
-            AppApplication.getInstance().getApi().sendClient(client).enqueue(new Callback<ResponseBody>() {
+            AppApplication.getInstance().getApiUnsafe().sendClient(client).enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                     if (response.isSuccessful()) {
@@ -582,7 +528,8 @@ public class Repository {
                             e.printStackTrace();
                         } catch (JSONException e) {
                             e.printStackTrace();
-                        }                    }
+                        }
+                    }
                 }
 
                 @Override

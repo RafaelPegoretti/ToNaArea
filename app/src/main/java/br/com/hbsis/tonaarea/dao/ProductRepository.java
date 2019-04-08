@@ -10,9 +10,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import br.com.hbsis.tonaarea.entities.Client;
 import br.com.hbsis.tonaarea.entities.Product;
 import br.com.hbsis.tonaarea.util.Constants;
-import br.com.hbsis.tonaarea.util.Mock;
+import br.com.hbsis.tonaarea.util.Util;
 
 public class ProductRepository {
 
@@ -26,13 +27,38 @@ public class ProductRepository {
         ContentValues contentValues = new ContentValues();
         contentValues.put(Constants.DATABASE.TABLE_PRODUCT.COLUMN_ID, product.getProductId());
         contentValues.put(Constants.DATABASE.TABLE_PRODUCT.COLUMN_NAME, product.getProductName());
-        //contentValues.put(Constants.DATABASE.TABLE_PRODUCT.COLUMN_DATE, Mock.parseDateToString(product.getDate()));
+        contentValues.put(Constants.DATABASE.TABLE_PRODUCT.COLUMN_DATE, product.getDate());
 
         connection.insertOrThrow(Constants.DATABASE.TABLE_PRODUCT.TABLE_NAME, null, contentValues);
     }
 
     public List<Product> getAll() {
 
+        List<Product> products = new ArrayList<>();
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT *");
+        sql.append("  FROM " + Constants.DATABASE.TABLE_PRODUCT.TABLE_NAME);
+
+        Cursor result = connection.rawQuery(sql.toString(), null);
+
+        if (result.getCount() == 0) {
+            result.close();
+            return products;
+        }
+        result.moveToFirst();
+
+        do {
+            Product p = new Product();
+            p.setProductId(result.getString(result.getColumnIndexOrThrow(Constants.DATABASE.TABLE_PRODUCT.COLUMN_ID)));
+            p.setProductName(result.getString(result.getColumnIndexOrThrow(Constants.DATABASE.TABLE_PRODUCT.COLUMN_NAME)));
+            p.setDate(result.getString(result.getColumnIndexOrThrow(Constants.DATABASE.TABLE_PRODUCT.COLUMN_DATE)));
+            products.add(p);
+        } while (result.moveToNext());
+
+        return products;
+    }
+
+    public List<Product> getNew(String startDate, String endDate){
         List<Product> products = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT *");

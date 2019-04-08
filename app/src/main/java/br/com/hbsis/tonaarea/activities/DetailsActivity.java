@@ -7,21 +7,27 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.List;
+
 import br.com.hbsis.tonaarea.R;
 import br.com.hbsis.tonaarea.business.DetailsBusiness;
 import br.com.hbsis.tonaarea.entities.Audit;
-import br.com.hbsis.tonaarea.util.Constants;
-import br.com.hbsis.tonaarea.util.Mock;
+import br.com.hbsis.tonaarea.repositories.CallbackReponse;
 import br.com.hbsis.tonaarea.util.SecurityPreferences;
+import br.com.hbsis.tonaarea.util.Util;
 
-public class DetailsActivity extends AppCompatActivity implements View.OnClickListener {
+public class DetailsActivity extends AppCompatActivity implements View.OnClickListener, CallbackReponse {
 
     private ViewHolder mViewHolder = new ViewHolder();
-    private Audit audit;
+    private Audit audit = new Audit();
     private String id;
-    private DetailsBusiness mDetailsBusiness = new DetailsBusiness();
-    List<String> list;
+    private DetailsBusiness mDetailsBusiness;
+    List<String> list = new ArrayList<>();
     int position;
     SecurityPreferences mSecurityPreferences;
 
@@ -30,15 +36,13 @@ public class DetailsActivity extends AppCompatActivity implements View.OnClickLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
 
+        mDetailsBusiness = new DetailsBusiness(this, this);
         mSecurityPreferences = new SecurityPreferences(this);
 
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
         id = bundle.getString("id");
 
-        list = mDetailsBusiness.getAuditsIds(Constants.URL.URL_AUDITORIAS, mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.USER_ID), 9, true, this);
-
-        position = list.size();
         this.mViewHolder.textSalePointName = findViewById(R.id.textSalePointName);
         this.mViewHolder.textProductName = findViewById(R.id.textProductName);
         this.mViewHolder.textTTVCompetitorPrice = findViewById(R.id.textTTVCompetitorPrice);
@@ -51,15 +55,13 @@ public class DetailsActivity extends AppCompatActivity implements View.OnClickLi
         this.mViewHolder.buttonNext = findViewById(R.id.buttonNext);
         this.mViewHolder.imagePhoto = findViewById(R.id.imagePhoto);
         this.mViewHolder.imageInclude = findViewById(R.id.imageInclude);
+        this.mViewHolder.textLogout = findViewById(R.id.textLogout);
+
 
         listeners();
 
-        audit = mDetailsBusiness.getAudit(Constants.URL.URL_AUDITORIAS, id, this);
-
-        setValues();
-        blockButtonNext();
-        buttonNextIsBlock();
-
+        mDetailsBusiness.getAudit(id, this);
+        //audit = mDetailsBusiness.getAudit(Constants.URL.URL_AUDITORIAS, id, this);
     }
 
     public void listeners() {
@@ -68,6 +70,8 @@ public class DetailsActivity extends AppCompatActivity implements View.OnClickLi
         mViewHolder.imageIrregularPrice.setOnClickListener(this);
         mViewHolder.imageLotNumber.setOnClickListener(this);
         mViewHolder.imagePhoto.setOnClickListener(this);
+        mViewHolder.textLogout.setOnClickListener(this);
+
     }
 
     private void setValues() {
@@ -77,13 +81,16 @@ public class DetailsActivity extends AppCompatActivity implements View.OnClickLi
         mViewHolder.textTTVResalePrice.setText(audit.getTTVRevenda());
         mViewHolder.textTTCCompetitorPrice.setText(audit.getTTCConcorrente());
         mViewHolder.textTTCResalePrice.setText(audit.getTTCRevenda());
-        mViewHolder.imageLotNumber.setImageBitmap(Mock.converteBase64Photo(audit.getImagem().getImageLotNumber()));
-        mViewHolder.imageIrregularPrice.setImageBitmap(Mock.converteBase64Photo(audit.getImagem().getImageIrregularPrice()));
+        mViewHolder.imageLotNumber.setImageBitmap(Util.converteBase64Photo(audit.getImagem().getImageLotNumber()));
+        mViewHolder.imageIrregularPrice.setImageBitmap(Util.converteBase64Photo(audit.getImagem().getImageIrregularPrice()));
     }
 
     private void blockButtonNext() {
-        if (id.equals(list.get(list.size() - 1))) {
-            mViewHolder.buttonNext.setEnabled(false);
+        try {
+            if (id.equals(list.get(list.size() - 1))) {
+                mViewHolder.buttonNext.setEnabled(false);
+            }
+        } catch (Exception e) {
         }
     }
 
@@ -105,37 +112,42 @@ public class DetailsActivity extends AppCompatActivity implements View.OnClickLi
                 }
                 mViewHolder.buttonNext.setEnabled(true);
                 getPreviusId();
-                audit = mDetailsBusiness.getAudit(Constants.URL.URL_AUDITORIAS, id, this);
-
+                //audit = mDetailsBusiness.getAudit(Constants.URL.URL_AUDITORIAS, id, this);
+                mDetailsBusiness.getAudit(id, this);
                 setValues();
                 buttonNextIsBlock();
                 break;
             case R.id.buttonNext:
                 getNextId();
-                audit = mDetailsBusiness.getAudit(Constants.URL.URL_AUDITORIAS, id, this);
+                //audit = mDetailsBusiness.getAudit(Constants.URL.URL_AUDITORIAS, id, this);
+                mDetailsBusiness.getAudit(id, this);
                 setValues();
                 blockButtonNext();
                 buttonNextIsBlock();
                 break;
             case R.id.imageIrregularPrice:
                 mViewHolder.imageInclude.setVisibility(View.VISIBLE);
-                mViewHolder.imagePhoto.setImageBitmap(Mock.converteBase64Photo(audit.getImagem().getImageIrregularPrice()));
+                mViewHolder.imagePhoto.setImageBitmap(Util.converteBase64Photo(audit.getImagem().getImageIrregularPrice()));
                 break;
             case R.id.imageLotNumber:
                 mViewHolder.imageInclude.setVisibility(View.VISIBLE);
-                mViewHolder.imagePhoto.setImageBitmap(Mock.converteBase64Photo(audit.getImagem().getImageLotNumber()));
+                mViewHolder.imagePhoto.setImageBitmap(Util.converteBase64Photo(audit.getImagem().getImageLotNumber()));
                 break;
             case R.id.imagePhoto:
                 mViewHolder.imageInclude.setVisibility(View.GONE);
+                break;
+            case R.id.textLogout:
+                Util.logout(this);
+                startActivity(new Intent(this, LoginActivity.class));
                 break;
         }
     }
 
     @Override
     public void onBackPressed() {
-        if (mViewHolder.imageInclude.getVisibility() == View.VISIBLE){
+        if (mViewHolder.imageInclude.getVisibility() == View.VISIBLE) {
             mViewHolder.imageInclude.setVisibility(View.GONE);
-        }else{
+        } else {
             super.onBackPressed();
         }
     }
@@ -164,6 +176,50 @@ public class DetailsActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
+    @Override
+    public void onSuccess(JSONObject jsonObject) {
+
+        try {
+            audit.setId(jsonObject.getString("id"));
+            audit.setNameRevenda(jsonObject.getString("nomeRevenda"));
+            audit.setName(jsonObject.getString("nomeCliente"));
+            audit.setProduct(jsonObject.getString("nomeProduto"));
+            audit.setTTCRevenda(jsonObject.getString("valorTtcRevenda"));
+            audit.setTTVRevenda(jsonObject.getString("valorTtvRevenda"));
+            audit.setTTCConcorrente(jsonObject.getString("valorTtcAuditado"));
+            audit.setTTVConcorrente(jsonObject.getString("valorTtvAuditado"));
+            audit.setDescription(jsonObject.getString("descricao"));
+            audit.setCoodinates(jsonObject.getString("coordenadas"));
+            audit.setNameAuditor(jsonObject.getString("nomeAuditor"));
+            audit.setInstant(jsonObject.getString("dataAuditoria"));
+            audit.setStatus(jsonObject.getString("statusWorkFlow"));
+
+            JSONObject jsonImage = jsonObject.getJSONObject("imagem");
+            audit.getImagem().setImageId(jsonImage.getString("id"));
+            audit.getImagem().setImageIrregularPrice(jsonImage.getString("precoIrregularBase64"));
+            audit.getImagem().setImageLotNumber(jsonImage.getString("loteBase64"));
+
+            try {
+                audit.setDateWorkFlow(jsonObject.getString("dataWorkflow"));
+                audit.setNameUserWorkFlow(jsonObject.getString("nomeUsuarioWorkflow"));
+            } catch (JSONException e) {
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        list = mDetailsBusiness.getIds();
+        position = list.size();
+        setValues();
+        blockButtonNext();
+        buttonNextIsBlock();
+    }
+
+    @Override
+    public void onError(JSONObject jsonObject) {
+
+    }
+
     private static class ViewHolder {
         private TextView textSalePointName;
         private TextView textProductName;
@@ -177,6 +233,7 @@ public class DetailsActivity extends AppCompatActivity implements View.OnClickLi
         private Button buttonNext;
         private ImageView imagePhoto;
         private View imageInclude;
+        private TextView textLogout;
     }
 
 }

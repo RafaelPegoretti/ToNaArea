@@ -22,4 +22,10 @@ public class SecurityPreferences {
         return sharedPreferences.getString(key, "");
     }
 
+    public void removeStoreString (String key){
+        sharedPreferences.edit().remove(key).apply();
+    }
+
+
+
 }

@@ -14,10 +14,10 @@
             android:id="@+id/textTTCResale"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="68dp"
-            android:layout_marginRight="68dp"
-            android:text="TTC Revenda"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="40dp"
+            android:layout_marginRight="40dp"
+            android:text="TTC Revenda (UN)"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/editTTVResale" />
 
@@ -31,7 +31,7 @@
             android:layout_marginBottom="16dp"
             android:background="@drawable/price_shape"
             android:ems="10"
-            android:hint="@string/exemplo"
+            android:hint="@string/exemplo_TTC"
             android:inputType="numberDecimal"
             android:maxLength="7"
             android:paddingTop="9dp"
@@ -66,7 +66,7 @@
             android:paddingBottom="10dp"
             android:paddingRight="2dp"
             android:singleLine="false"
-            android:hint="@string/exemplo"
+            android:hint="@string/exemplo_TTC"
             app:layout_constraintStart_toEndOf="@+id/textView11"
             app:layout_constraintTop_toBottomOf="@+id/textTTCCompetitor" />
 
@@ -89,8 +89,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
-            android:layout_marginTop="24dp"
-            android:text="TTC Concorrente"
+            android:layout_marginTop="16dp"
+            android:text="TTC Auditado (UN)"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/editTTVCompetitor" />
 
@@ -109,7 +109,7 @@
             android:paddingTop="9dp"
             android:paddingBottom="10dp"
             android:paddingRight="2dp"
-            android:hint="@string/exemplo"
+            android:hint="@string/exemplo_TTV"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textTTVResale" />
 
@@ -118,9 +118,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
-            android:layout_marginEnd="68dp"
-            android:layout_marginRight="68dp"
-            android:text="TTV Revenda"
+            android:layout_marginEnd="40dp"
+            android:layout_marginRight="40dp"
+            android:text="TTV Revenda (CX)"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/imageView8" />
 
@@ -142,7 +142,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
             android:layout_marginTop="32dp"
-            android:text="TTV Concorrente"
+            android:text="TTV Auditado (CX)"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/imageView8" />
 
@@ -172,15 +172,15 @@
             android:paddingTop="9dp"
             android:paddingBottom="10dp"
             android:paddingRight="2dp"
-            android:hint="@string/exemplo"
+            android:hint="@string/exemplo_TTV"
             app:layout_constraintStart_toEndOf="@+id/textView6"
             app:layout_constraintTop_toBottomOf="@+id/textTTVCompetitor" />
 
 
         <ImageView
             android:id="@+id/imageView8"
-            android:layout_width="161dp"
-            android:layout_height="123dp"
+            android:layout_width="132dp"
+            android:layout_height="107dp"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
             android:layout_marginTop="44dp"

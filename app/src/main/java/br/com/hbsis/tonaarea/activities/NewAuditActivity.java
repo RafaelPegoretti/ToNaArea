@@ -7,29 +7,27 @@ import android.content.pm.PackageManager;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewStub;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,19 +51,20 @@ import br.com.hbsis.tonaarea.R;
 import br.com.hbsis.tonaarea.business.NewAuditBusiness;
 import br.com.hbsis.tonaarea.dao.ClientRepository;
 import br.com.hbsis.tonaarea.dao.ProductRepository;
-import br.com.hbsis.tonaarea.dao.Sync;
 import br.com.hbsis.tonaarea.db.DataOpenHelper;
 import br.com.hbsis.tonaarea.entities.Audit;
-import br.com.hbsis.tonaarea.entities.AuditDTO;
 import br.com.hbsis.tonaarea.entities.Client;
 import br.com.hbsis.tonaarea.entities.Imagem;
 import br.com.hbsis.tonaarea.entities.Product;
 import br.com.hbsis.tonaarea.repositories.CallbackReponse;
 import br.com.hbsis.tonaarea.util.Constants;
-import br.com.hbsis.tonaarea.util.Mock;
 import br.com.hbsis.tonaarea.util.SecurityPreferences;
+import br.com.hbsis.tonaarea.util.Util;
+import br.com.hbsis.tonaarea.util.Validator;
 
 public class NewAuditActivity extends AppCompatActivity implements View.OnClickListener, LocationListener, CallbackReponse {
+
+    private static int REQUEST_LOCATION_CODE = 1;
 
     private ViewHolder mViewHolder = new ViewHolder();
     private ViewHolderPhoto mViewHolderPhoto = new ViewHolderPhoto();
@@ -80,7 +79,6 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
     private Boolean[] first = new Boolean[4];
     private Boolean[] photos = new Boolean[]{false, false};
     private FusedLocationProviderClient mFusedLocationClient;
-    private LocationCallback mLocationCallback;
     private List<Client> clients;
     private List<Product> products;
     private String clientId;
@@ -89,6 +87,19 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
     private ClientRepository mClientRepository;
     private SQLiteDatabase connection;
     private int characters = 0;
+    private int attempts = 0;
+
+    private LocationCallback mLocationCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            if (locationResult == null) {
+                return;
+            }
+            for (Location location : locationResult.getLocations()) {
+                setCordinates(location);
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,7 +107,7 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.activity_new_audit);
 
         getRepositories();
-        mNewAuditBusiness = new NewAuditBusiness(this);
+        mNewAuditBusiness = new NewAuditBusiness(this, this);
         mSecurityPreferences = new SecurityPreferences(this);
         mProductRepository = new ProductRepository(connection);
         mClientRepository = new ClientRepository(connection);
@@ -111,8 +122,8 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         this.mViewHolder.comfirmation = findViewById(R.id.comfirmation);
         this.mViewHolder.buttonComfirmation = findViewById(R.id.buttonComfirmation);
         this.mViewHolder.loadingView = findViewById(R.id.loadingView);
-        this.mViewHolder.newPDV = findViewById(R.id.newPDV);
         this.mViewHolder.viewStubProduct = findViewById(R.id.viewStubProduct);
+        this.mViewHolder.textLogout = findViewById(R.id.textLogout);
 
         mViewHolder.viewStubImage.setLayoutResource(R.layout.new_audit_layout);
         mViewHolder.viewStubImage.inflate();
@@ -140,18 +151,14 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         this.mViewHolderForm.editTTCResale = findViewById(R.id.editTTCResale);
 
         this.mViewHolderPDV.editPDV = findViewById(R.id.editPDV);
-        this.mViewHolderPDV.editNewPDV = findViewById(R.id.editNewPDV);
-        this.mViewHolderPDV.editCodePDV = findViewById(R.id.editCodePDV);
-
         this.mViewHolderPDV.buttonNewPDV = findViewById(R.id.buttonNewPDV);
-        this.mViewHolderPDV.buttonAddPDV = findViewById(R.id.buttonAddPDV);
-        this.mViewHolderPDV.buttonCancel = findViewById(R.id.buttonCancel);
-        this.mViewHolderPDV.editNewPDV = findViewById(R.id.editNewPDV);
-        this.mViewHolderPDV.editCodePDV = findViewById(R.id.editCodePDV);
 
         this.mViewHolderProduct.editProduct = findViewById(R.id.editProduct);
         this.mViewHolderProduct.editDescription = findViewById(R.id.editDescription);
         this.mViewHolderProduct.textCharacter = findViewById(R.id.textCharacter);
+        this.mViewHolderProduct.editIrregularBoxes = findViewById(R.id.editIrregularBoxes);
+        this.mViewHolderProduct.editFactory = findViewById(R.id.editFactory);
+        this.mViewHolderProduct.checkAudited = findViewById(R.id.checkAudited);
 
         mViewHolder.textStep.setText(getString(R.string.fotografe_preco_irregular));
         buttonNextEnabledFalse();
@@ -164,18 +171,21 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         first[1] = false;
         first[2] = false;
 
-        clients = mClientRepository.getAll();
-        products = mProductRepository.getAll();
 
-        autoCompletePDV(clients);
-        autoCompleteProduct(products);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        startService(new Intent(this, Sync.class));
         startLocationUpdates();
+
+        //clients.addAll(mClientRepository.getNew(clients));
+        clients = mClientRepository.getAll();
+        products = mProductRepository.getAll();
+
+        autoCompletePDV(clients);
+        autoCompleteProduct(products);
+
     }
 
     private void autoCompletePDV(List<Client> clients) {
@@ -216,8 +226,7 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         mViewHolderPhoto.buttonPhotograph.setOnClickListener(this);
         mViewHolder.buttonComfirmation.setOnClickListener(this);
         mViewHolderPDV.buttonNewPDV.setOnClickListener(this);
-        mViewHolderPDV.buttonCancel.setOnClickListener(this);
-        mViewHolderPDV.buttonAddPDV.setOnClickListener(this);
+        mViewHolder.textLogout.setOnClickListener(this);
         mViewHolderProduct.editDescription.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -241,7 +250,11 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         audit.setTTVConcorrente(mViewHolderForm.editTTVCompetitor.getText().toString());
         audit.setTTVRevenda(mViewHolderForm.editTTVResale.getText().toString());
         audit.setTTCConcorrente(mViewHolderForm.editTTCCompetitor.getText().toString());
-        audit.setTTCRevenda(mViewHolderForm.editTTCResale.getText().toString());
+        if (mViewHolderForm.editTTCResale.getText().toString().equals("") || mViewHolderForm.editTTCResale.getText().toString().equals(".")){
+            audit.setTTCRevenda(null);
+        }else{
+            audit.setTTCRevenda(mViewHolderForm.editTTCResale.getText().toString());
+        }
 
         Calendar c = Calendar.getInstance();
         audit.setInstant(c.get(Calendar.DAY_OF_MONTH) + "/" + c.get(Calendar.MONTH) + 1);
@@ -251,13 +264,18 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
 
     private void coordinates() {
 
+        attempts++;
         mViewHolder.loadingView.setVisibility(View.VISIBLE);
-
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        if (attempts == 3){
+            mViewHolder.loadingView.setVisibility(View.GONE);
+        }
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            mViewHolder.loadingView.setVisibility(View.GONE);
             return;
         }
+
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mFusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                     @Override
@@ -269,50 +287,51 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
                     }
                 });
 
-        mLocationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) {
-                    return;
-                }
-                for (Location location : locationResult.getLocations()) {
-                    setCordinates(location);
-                }
-            }
-        };
     }
 
     private void setCordinates(Location location) {
         if (location != null) {
             audit.setLongitude(location.getLongitude());
             audit.setLatitude(location.getLatitude());
-        } else {
         }
     }
 
     private void getPermission() {
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                1
+                REQUEST_LOCATION_CODE
         );
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == getPackageManager().PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             coordinates();
-        } else {
-            Toast.makeText(this, "Você não terá as coordenadas para registrar", Toast.LENGTH_LONG).show();
         }
 
-        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(this.CONNECTIVITY_SERVICE);
+        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(CONNECTIVITY_SERVICE);
 
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        if ((netInfo == null) && (!netInfo.isConnectedOrConnecting()) && (!netInfo.isAvailable())) {
+        if ((netInfo != null) && (!netInfo.isConnectedOrConnecting()) && (!netInfo.isAvailable())) {
             Toast.makeText(this, "não conectado a internet", Toast.LENGTH_LONG).show();
         }
 
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        if(REQUEST_LOCATION_CODE == requestCode){
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                coordinates();
+            } else {
+                Toast.makeText(this, "Você não terá as coordenadas para registrar", Toast.LENGTH_LONG).show();
+            }
+        }
+
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
     private void startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
@@ -327,6 +346,14 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
 
     private void setAudit(Audit audit) {
 
+        try{
+            audit.setIrregularBoxes(Integer.parseInt(mViewHolderProduct.editIrregularBoxes.getText().toString()));
+        }catch (Exception e){
+
+        }
+        audit.setFactory(mViewHolderProduct.editFactory.getText().toString());
+        audit.setTtvAuditorValid(mViewHolderProduct.checkAudited.isChecked());
+
         audit.setRevendaId(mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.REV_ID));
         audit.setClientId(clientId);
         audit.setImagem(imagem);
@@ -334,7 +361,7 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         audit.setAuditorUserId(mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.USER_ID));
         audit.setDescription(mViewHolderProduct.editDescription.getText().toString());
 
-        mNewAuditBusiness.postNewAudit(audit, this);
+        mNewAuditBusiness.postNewAudit(audit);
 
     }
 
@@ -355,11 +382,11 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
                         break;
                     case 2:
                         mViewHolder.textStep.setText(getString(R.string.fotografe_preco_irregular));
-                        mViewHolderPhoto.imagePhoto.setImageBitmap(Mock.converteBase64Photo(imagem.getImageIrregularPrice()));
+                        mViewHolderPhoto.imagePhoto.setImageBitmap(Util.converteBase64Photo(imagem.getImageIrregularPrice()));
                         break;
                     case 3:
                         mViewHolder.textStep.setText(getString(R.string.fotografe_numero_lote));
-                        mViewHolderPhoto.imagePhoto.setImageBitmap(Mock.converteBase64Photo(imagem.getImageLotNumber()));
+                        mViewHolderPhoto.imagePhoto.setImageBitmap(Util.converteBase64Photo(imagem.getImageLotNumber()));
                         mViewHolder.viewStubPDV.setVisibility(View.GONE);
                         mViewHolder.viewStubImage.setVisibility(View.VISIBLE);
                         break;
@@ -381,7 +408,7 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
                     case 1:
                         if (photos[0]) {
                             if (first[1]) {
-                                mViewHolderPhoto.imagePhoto.setImageBitmap(Mock.converteBase64Photo(imagem.getImageLotNumber()));
+                                mViewHolderPhoto.imagePhoto.setImageBitmap(Util.converteBase64Photo(imagem.getImageLotNumber()));
                             } else {
                                 buttonNextEnabledFalse();
                                 mViewHolderPhoto.buttonPhotograph.setText(getString(R.string.fotografar));
@@ -397,7 +424,7 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
                     case 2:
                         if (photos[1]) {
                             if (first[0]) {
-                                mViewHolderPhoto.imagePhoto.setImageBitmap(Mock.converteBase64Photo(imagem.getImageIrregularPrice()));
+                                mViewHolderPhoto.imagePhoto.setImageBitmap(Util.converteBase64Photo(imagem.getImageIrregularPrice()));
                             } else {
                                 buttonNextEnabledFalse();
                             }
@@ -417,10 +444,11 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
                         }
                         break;
                     case 4:
-                        if (mNewAuditBusiness.priceValidation(mViewHolderForm.editTTVCompetitor.getText().toString(),
+                        Validator validator = mNewAuditBusiness.priceValidation(mViewHolderForm.editTTVCompetitor.getText().toString(),
                                 mViewHolderForm.editTTVResale.getText().toString(),
                                 mViewHolderForm.editTTCCompetitor.getText().toString(),
-                                mViewHolderForm.editTTCResale.getText().toString())) {
+                                mViewHolderForm.editTTCResale.getText().toString());
+                        if (validator.isValid()) {
                             ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(mViewHolderForm.editTTCResale.getWindowToken(), 0);
                             ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(mViewHolderForm.editTTCCompetitor.getWindowToken(), 0);
                             ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(mViewHolderForm.editTTVResale.getWindowToken(), 0);
@@ -431,16 +459,17 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
                             mViewHolder.buttonNext.setText("Finalizar");
                             mViewHolder.textStep.setText(getString(R.string.produto_nome));
                         } else {
-                            Toast.makeText(this, "insira valores entre 0 e 9999.99", Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, validator.getMessage(), Toast.LENGTH_LONG).show();
                         }
                         break;
                     case 5:
-                        if (mNewAuditBusiness.productValidator(mViewHolderProduct.editProduct.getText().toString(), products)) {
+                        Validator validatorProduct = mNewAuditBusiness.productValidator(mViewHolderProduct.editIrregularBoxes.getText().toString(),mViewHolderProduct.editProduct.getText().toString(), products);
+                        if (validatorProduct.isValid()) {
                             productId = getProductId(mViewHolderProduct.editProduct.getText().toString());
                             setValues();
                             setAudit(audit);
                         } else {
-                            Toast.makeText(this, "Produto não existente", Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, validatorProduct.getMessage(), Toast.LENGTH_LONG).show();
                         }
                         break;
                 }
@@ -453,15 +482,11 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
                 finish();
                 break;
             case R.id.buttonNewPDV:
-                mViewHolder.newPDV.setVisibility(View.VISIBLE);
+                startActivity(new Intent(this, PDVActivity.class));
                 break;
-            case R.id.buttonCancel:
-                mViewHolder.newPDV.setVisibility(View.GONE);
-                break;
-            case R.id.buttonAddPDV:
-                Client client = new Client(mViewHolderPDV.editNewPDV.getText().toString(), mViewHolderPDV.editCodePDV.getText().toString(), false, mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.REV_ID));
-                mNewAuditBusiness.postNewPDV(client, this);
-                startService(new Intent(this, Sync.class));
+            case R.id.textLogout:
+                Util.logout(this);
+                startActivity(new Intent(this, LoginActivity.class));
                 break;
         }
     }
@@ -495,7 +520,6 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         return "";
     }
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
 
@@ -506,10 +530,10 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
             mViewHolderPhoto.imagePhoto.setImageBitmap((photo));
 
             if (position == 1) {
-                imagem.setImageIrregularPrice(Mock.convertPhotoBase64(photo));
+                imagem.setImageIrregularPrice(Util.convertPhotoBase64(photo));
                 photos[0] = true;
             } else if (position == 2) {
-                imagem.setImageLotNumber(Mock.convertPhotoBase64(photo));
+                imagem.setImageLotNumber(Util.convertPhotoBase64(photo));
                 photos[1] = true;
             }
             mViewHolderPhoto.buttonPhotograph.setText(getString(R.string.trocar_foto));
@@ -521,27 +545,17 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
     }
 
     @Override
-    public void onBackPressed() {
-        if (mViewHolder.newPDV.getVisibility() == View.VISIBLE) {
-            mViewHolder.newPDV.setVisibility(View.GONE);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
     public void onSuccess(JSONObject jsonObject) {
 
         try {
             if (jsonObject.getBoolean("success")) {
-                switch (position) {
+                switch (position){
                     case 5:
                         mViewHolder.comfirmation.setVisibility(View.VISIBLE);
                         break;
                     case 3:
-                        clients = mNewAuditBusiness.getClients(Constants.URL.URL_CLIENTES, this);
+                        clients = mNewAuditBusiness.getClients();
                         autoCompletePDV(clients);
-                        mViewHolder.newPDV.setVisibility(View.GONE);
                         break;
                 }
 
@@ -572,7 +586,6 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
             mProductRepository = new ProductRepository(connection);
             mClientRepository = new ClientRepository(connection);
         } catch (SQLException e) {
-            Log.d("OK", "ok");
         }
     }
 
@@ -588,7 +601,7 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
         private View comfirmation;
         private Button buttonComfirmation;
         private View loadingView;
-        private View newPDV;
+        private TextView textLogout;
     }
 
     private static class ViewHolderPhoto {
@@ -600,11 +613,7 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
 
     private static class ViewHolderPDV {
         private AutoCompleteTextView editPDV;
-        private EditText editNewPDV;
-        private EditText editCodePDV;
         private Button buttonNewPDV;
-        private Button buttonAddPDV;
-        private Button buttonCancel;
     }
 
     private static class ViewHolderForm {
@@ -616,8 +625,9 @@ public class NewAuditActivity extends AppCompatActivity implements View.OnClickL
 
     private static class ViewHolderProduct {
         private AutoCompleteTextView editProduct;
-        private EditText editDescription;
+        private EditText editDescription, editIrregularBoxes, editFactory;
         private TextView textCharacter;
+        private CheckBox checkAudited;
     }
 
 }

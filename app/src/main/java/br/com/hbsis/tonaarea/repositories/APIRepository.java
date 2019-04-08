@@ -76,23 +76,6 @@ public class APIRepository extends AsyncTask<APIObject, Void, String>{
             connection.setUseCaches(false);
             connection.connect();
 
-            if (!apiObjects[0].getMethod().equals(Constants.OPERATION_METHOD.GET)){
-                OutputStreamWriter request = new OutputStreamWriter(connection.getOutputStream());
-                request.write(apiObjects[0].getJson().toString());
-                request.flush();
-                request.close();
-                String line;
-                InputStreamReader isr = new InputStreamReader(connection.getInputStream());
-                BufferedReader reader = new BufferedReader(isr);
-                StringBuilder sb = new StringBuilder();
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line + "\n");
-                }
-                return sb.toString();
-
-            }
-
-
             responseCode = connection.getResponseCode();
             if(responseCode < HttpURLConnection.HTTP_BAD_REQUEST){
                 is = connection.getInputStream();

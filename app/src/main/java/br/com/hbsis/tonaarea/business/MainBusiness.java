@@ -1,42 +1,62 @@
 package br.com.hbsis.tonaarea.business;
 
 import android.content.Context;
-
+import android.widget.Toast;
 import org.json.JSONException;
-
-import java.lang.reflect.Array;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import br.com.hbsis.tonaarea.entities.Audit;
-import br.com.hbsis.tonaarea.entities.Client;
-import br.com.hbsis.tonaarea.entities.Product;
+import org.json.JSONObject;
+import br.com.hbsis.tonaarea.repositories.CallbackReponse;
 import br.com.hbsis.tonaarea.repositories.Repository;
-import br.com.hbsis.tonaarea.util.Constants;
-import br.com.hbsis.tonaarea.util.Mock;
-import br.com.hbsis.tonaarea.util.SecurityPreferences;
 
-public class MainBusiness {
+public class MainBusiness implements CallbackReponse{
+    private Repository mRepository;
+    private Repository mRepository2;
+    private CallbackReponse callbackReponse;
+    private Context context;
+    private int position = 0;
+    private String[] dates = new String[2];
 
-    Repository mRepository = new Repository();
-
-    public int[] getQuantity(String url, Context context){
-        return mRepository.getQuantity(url, context);
+    public MainBusiness(CallbackReponse callbackReponse, Context context) {
+        this.callbackReponse = callbackReponse;
+        this.context = context;
+        mRepository = new Repository(callbackReponse);
+        mRepository2 = new Repository(this);
+        updateDates();
     }
 
-    public List<Client> getClients(String url, Context context){
-        return mRepository.getClients(url, context);
+    public void getQuantity(){
+        mRepository.getQuantity(context);
     }
 
-    public List<Product> getProducts(String url, Context context){
-        return mRepository.getProducts(url, context);
+
+    public void getClients(String startDate, String endDate){
+     mRepository.getClients(context,startDate,endDate);
     }
 
-    public Date[] getDates(Context context){
-        return new Date[]{
-                mRepository.getLastUpdateClient(Constants.URL.URL_CLIENTES_ULTIMA_ATUALIZACAO, context),
-                mRepository.getLastUpdateProduct(Constants.URL.URL_PRODUTOS_ULTIMA_ATUALIZACAO, context)};
+    public void getProducts(String startDate, String endDate){
+        mRepository.getProducts(endDate,startDate);
     }
 
+    public String[] getDates() {
+        return dates;
+    }
+
+    public void updateDates(){
+        mRepository2.getLastUpdateProduct();
+        mRepository2.getLastUpdateClient(context);
+    }
+
+    @Override
+    public void onSuccess(JSONObject jsonObject) {
+        try {
+            dates[position] = jsonObject.getString("dataUltimaAtualizacao");
+            position++;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onError(JSONObject jsonObject) {
+        Toast.makeText(context, "Erro ao pegar as datas", Toast.LENGTH_LONG).show();
+    }
 }

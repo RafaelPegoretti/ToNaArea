@@ -8,28 +8,25 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import org.json.JSONException;
-
+import org.json.JSONObject;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-
 import br.com.hbsis.tonaarea.R;
 import br.com.hbsis.tonaarea.adapters.AuditsDetailsAdapter;
 import br.com.hbsis.tonaarea.business.AuditsDetailsBusiness;
-import br.com.hbsis.tonaarea.entities.Audit;
 import br.com.hbsis.tonaarea.entities.AuditDTO;
-import br.com.hbsis.tonaarea.repositories.API;
+import br.com.hbsis.tonaarea.repositories.CallbackReponse;
 import br.com.hbsis.tonaarea.util.ActionListDetails;
 import br.com.hbsis.tonaarea.util.Constants;
-import br.com.hbsis.tonaarea.util.Mock;
 import br.com.hbsis.tonaarea.util.SecurityPreferences;
+import br.com.hbsis.tonaarea.util.Util;
 
-public class AuditsDetailsActivity extends AppCompatActivity implements ActionListDetails, View.OnClickListener {
+public class AuditsDetailsActivity extends AppCompatActivity implements ActionListDetails, View.OnClickListener, CallbackReponse {
 
     private ViewHolder mViewHolder = new ViewHolder();
-    private AuditsDetailsBusiness mAuditsDetailsBusiness = new AuditsDetailsBusiness();
-    private List<AuditDTO> list;
+    private AuditsDetailsBusiness mAuditsDetailsBusiness;
+    private List<AuditDTO> list = new ArrayList<>();
     private SecurityPreferences mSecurityPreferences;
 
     @Override
@@ -38,8 +35,8 @@ public class AuditsDetailsActivity extends AppCompatActivity implements ActionLi
         setContentView(R.layout.activity_audits_details);
 
         mSecurityPreferences = new SecurityPreferences(this);
-        list = mAuditsDetailsBusiness.getAudits(Constants.URL.URL_AUDITORIAS, mSecurityPreferences.getStoredString(Constants.SECURITY_PREFERENCES_CONSTANTS.USER_ID), 9, true, this);
-
+        mAuditsDetailsBusiness = new AuditsDetailsBusiness(this, this);
+        mAuditsDetailsBusiness.getAudits();
 
         this.mViewHolder.listAuditsDetails = findViewById(R.id.listAuditsDetails);
         this.mViewHolder.imageAll = findViewById(R.id.imageAll);
@@ -50,10 +47,9 @@ public class AuditsDetailsActivity extends AppCompatActivity implements ActionLi
         this.mViewHolder.textOnApproval = findViewById(R.id.textOnApproval);
         this.mViewHolder.textApproved = findViewById(R.id.textApproved);
         this.mViewHolder.textDisapproved = findViewById(R.id.textDisapproved);
+        this.mViewHolder.textLogout = findViewById(R.id.textLogout);
 
         listeners();
-
-        mViewHolder.listAuditsDetails.setAdapter(new AuditsDetailsAdapter(list, this, this));
     }
 
 
@@ -62,6 +58,7 @@ public class AuditsDetailsActivity extends AppCompatActivity implements ActionLi
         this.mViewHolder.imageOnApproval.setOnClickListener(this);
         this.mViewHolder.imageApproved.setOnClickListener(this);
         this.mViewHolder.imageDisapproved.setOnClickListener(this);
+        mViewHolder.textLogout.setOnClickListener(this);
     }
 
 
@@ -106,6 +103,10 @@ public class AuditsDetailsActivity extends AppCompatActivity implements ActionLi
                 mViewHolder.imageDisapproved.setImageResource(R.drawable.ic_small_disapproved_blue);
                 mViewHolder.textDisapproved.setTextColor(textColor);
                 break;
+            case R.id.textLogout:
+                Util.logout(this);
+                startActivity(new Intent(this, LoginActivity.class));
+                break;
         }
     }
 
@@ -125,6 +126,30 @@ public class AuditsDetailsActivity extends AppCompatActivity implements ActionLi
 
     }
 
+    @Override
+    public void onSuccess(JSONObject jsonObject) {
+        AuditDTO audit = new AuditDTO();
+        try {
+            audit.setId(jsonObject.getString("id"));
+            audit.setNameRevenda(jsonObject.getString("nomeRevenda"));
+            audit.setName(jsonObject.getString("nomeCliente"));
+            audit.setProduct(jsonObject.getString("nomeProduto"));
+            audit.setNameAuditor(jsonObject.getString("nomeAuditor"));
+            audit.setStatus(jsonObject.getString("statusWorkflow"));
+            audit.setInstant(jsonObject.getString("dataAuditoria"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        list.add(audit);
+        //Collections.sort(list);
+        mViewHolder.listAuditsDetails.setAdapter(new AuditsDetailsAdapter(list, this, this));
+    }
+
+    @Override
+    public void onError(JSONObject jsonObject) {
+
+    }
+
     private static class ViewHolder {
         private RecyclerView listAuditsDetails;
         private ImageView imageAll;
@@ -135,5 +160,6 @@ public class AuditsDetailsActivity extends AppCompatActivity implements ActionLi
         private TextView textOnApproval;
         private TextView textApproved;
         private TextView textDisapproved;
+        private TextView textLogout;
     }
 }

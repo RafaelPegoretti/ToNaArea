@@ -6,12 +6,12 @@ import android.database.sqlite.SQLiteDatabase;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
 import br.com.hbsis.tonaarea.entities.Client;
 import br.com.hbsis.tonaarea.util.Constants;
-import br.com.hbsis.tonaarea.util.Mock;
 
 public class ClientRepository {
 
@@ -76,6 +76,7 @@ public class ClientRepository {
         return clients;
     }
 
+
     public List<Date> getDate(){
 
         List<Date> dates = new ArrayList<>();
@@ -129,4 +130,15 @@ public class ClientRepository {
     }
 
 
+    public List<Client> getNew(List<Client> clients) {
+        List<Client> clients2 = new ArrayList<>();
+        for (Client client: getAll()){
+            for (Client client2: clients){
+                if (!client.getClientId().equals(client2.getClientId())){
+                    clients2.add(client);
+                }
+            }
+        }
+        return clients2;
+    }
 }

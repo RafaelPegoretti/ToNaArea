@@ -1,12 +1,8 @@
 package br.com.hbsis.tonaarea.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-
 import java.io.Serializable;
-
-import br.com.hbsis.tonaarea.util.Constants;
 
 public class Audit implements Serializable {
 
@@ -40,12 +36,13 @@ public class Audit implements Serializable {
 
     @Expose
     @SerializedName("longitude")
-    private Double longitude;
+    private double longitude;
 
     @Expose
     @SerializedName("latitude")
-    private Double latitude;
+    private double latitude;
 
+    private String coodinates ;
     private String nameAuditor;
     private String nameUserWorkFlow;
     private String dateWorkFlow;
@@ -70,10 +67,23 @@ public class Audit implements Serializable {
     @SerializedName("imagem")
     private Imagem imagem = new Imagem();
 
+    @Expose
+    @SerializedName("caixasIrregulares")
+    private int irregularBoxes;
+
+    @Expose
+    @SerializedName("fabricaOrigem")
+    private String factory;
+
+    @Expose
+    @SerializedName("ttvAuditadoValidado")
+    private boolean ttvAuditorValid;
+
+
 
     public Audit(){}
 
-    public Audit(String id, String status, String nameRevenda, String name, String product, String instant, String TTVConcorrente, String TTVRevenda, String TTCConcorrente, String TTCRevenda, String description, Double longitude, Double latitude, String nameAuditor, String nameUserWorkFlow, String dateWorkFlow, Imagem imagem) {
+    public Audit(String id, String status, String nameRevenda, String name, String product, String instant, String TTVConcorrente, String TTVRevenda, String TTCConcorrente, String TTCRevenda, String description, String coodinates, String nameAuditor, String nameUserWorkFlow, String dateWorkFlow, Imagem imagem) {
         this.id = id;
         this.status = status;
         this.nameRevenda = nameRevenda;
@@ -85,8 +95,7 @@ public class Audit implements Serializable {
         this.TTCConcorrente = TTCConcorrente;
         this.TTCRevenda = TTCRevenda;
         this.description = description;
-        this.longitude = longitude;
-        this.latitude = latitude;
+        this.coodinates = coodinates;
         this.nameAuditor = nameAuditor;
         this.nameUserWorkFlow = nameUserWorkFlow;
         this.dateWorkFlow = dateWorkFlow;
@@ -193,22 +202,13 @@ public class Audit implements Serializable {
     }
 
 
-    public Double getLongitude() {
-        return longitude;
+    public String getCoodinates() {
+        return coodinates;
     }
 
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
+    public void setCoodinates(String coodinates) {
+        this.coodinates = coodinates;
     }
-
-    public Double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
 
     public String getNameAuditor() {
         return nameAuditor;
@@ -272,5 +272,45 @@ public class Audit implements Serializable {
 
     public void setImagem(Imagem imagem) {
         this.imagem = imagem;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public int getIrregularBoxes() {
+        return irregularBoxes;
+    }
+
+    public void setIrregularBoxes(int irregularBoxes) {
+        this.irregularBoxes = irregularBoxes;
+    }
+
+    public String getFactory() {
+        return factory;
+    }
+
+    public void setFactory(String factory) {
+        this.factory = factory;
+    }
+
+    public boolean isTtvAuditorValid() {
+        return ttvAuditorValid;
+    }
+
+    public void setTtvAuditorValid(boolean ttvAditorValid) {
+        this.ttvAuditorValid = ttvAditorValid;
     }
 }

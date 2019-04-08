@@ -12,6 +12,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.github.rtoshiro.util.format.SimpleMaskFormatter;
+import com.github.rtoshiro.util.format.text.MaskTextWatcher;
+
 import org.json.JSONObject;
 import br.com.hbsis.tonaarea.business.LoginBusiness;
 import br.com.hbsis.tonaarea.R;
@@ -19,8 +23,9 @@ import br.com.hbsis.tonaarea.dao.ClientRepository;
 import br.com.hbsis.tonaarea.dao.ProductRepository;
 import br.com.hbsis.tonaarea.db.DataOpenHelper;
 import br.com.hbsis.tonaarea.repositories.CallbackReponse;
+import br.com.hbsis.tonaarea.util.Validator;
 
-public class LoginActivity extends AppCompatActivity implements View.OnClickListener, View.OnTouchListener, CallbackReponse {
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener, CallbackReponse {
 
     private LoginBusiness mLoginBusiness;
     private ViewHolder mViewHolder = new ViewHolder();
@@ -38,21 +43,23 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         this.mViewHolder.editPassword = findViewById(R.id.editPassword);
         this.mViewHolder.buttonLogin = findViewById(R.id.buttonLogin);
         this.mViewHolder.textForgotPassword = findViewById(R.id.textForgotPassword);
-        this.mViewHolder.layoutBackgroundLogin = findViewById(R.id.layoutBackgroundLogin);
-        this.mViewHolder.layoutFormLogin = findViewById(R.id.layoutFormLogin);
+
+        SimpleMaskFormatter smf = new SimpleMaskFormatter("NNN.NNN.NNN-NN");
+        mViewHolder.editUser.addTextChangedListener(new MaskTextWatcher(mViewHolder.editUser, smf));
 
         getRepositories();
         listeners();
+
+        if (mLoginBusiness.access()){
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+        }
+
     }
 
     public void listeners() {
         mViewHolder.buttonLogin.setOnClickListener(this);
         mViewHolder.textForgotPassword.setOnClickListener(this);
-
-        mViewHolder.editUser.setOnTouchListener(this);
-        mViewHolder.editPassword.setOnTouchListener(this);
-
-
     }
 
 
@@ -60,41 +67,23 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonLogin:
-                mLoginBusiness.login(mViewHolder.editUser.getText().toString(), mViewHolder.editPassword.getText().toString());
+                mLoginBusiness.login(mViewHolder.editUser.getText().toString().replace(".", "").replace("-", ""), mViewHolder.editPassword.getText().toString());
                 break;
 
             case R.id.textForgotPassword:
                 Toast.makeText(this, "Entre em contato com seu TI para efetuar o reset da senha", Toast.LENGTH_LONG).show();
                 break;
-
-            case R.id.editUser:
-                Toast.makeText(this, "TESTE", Toast.LENGTH_LONG).show();
-                break;
         }
-    }
-
-
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-
-        if (MotionEvent.ACTION_UP == event.getAction()) {
-            ConstraintLayout.LayoutParams newLayoutParams = (ConstraintLayout.LayoutParams) mViewHolder.layoutBackgroundLogin.getLayoutParams();
-            newLayoutParams.bottomMargin = 1200;
-            mViewHolder.layoutBackgroundLogin.setLayoutParams(newLayoutParams);
-
-            newLayoutParams = (ConstraintLayout.LayoutParams) mViewHolder.layoutFormLogin.getLayoutParams();
-            newLayoutParams.bottomMargin = 700;
-            mViewHolder.layoutFormLogin.setLayoutParams(newLayoutParams);
-        }
-
-        return false;
     }
 
     @Override
     public void onSuccess(JSONObject jsonObject) {
-        if (mLoginBusiness.loginValidation(jsonObject)) {
+        Validator validator = mLoginBusiness.loginValidation(jsonObject);
+        if (validator.isValid()) {
             startActivity(new Intent(this, MainActivity.class));
             finish();
+        }else {
+            Toast.makeText(this, validator.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -118,8 +107,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         private EditText editPassword;
         private Button buttonLogin;
         private TextView textForgotPassword;
-        private ConstraintLayout layoutBackgroundLogin;
-        private ConstraintLayout layoutFormLogin;
     }
 
 
